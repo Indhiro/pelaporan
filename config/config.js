@@ -38,7 +38,7 @@ con.connect(function (err) {
 const createTable = {
     queryTbUser: `CREATE TABLE IF NOT EXISTS ${'`db_laporan`'}.tb_user (
         id_user int NOT NULL AUTO_INCREMENT,
-        role enum ('mahasiswa', 'dosen', 'petugas', 'kepala prodi', 'wakil dekan 2', 'wakil rektor 2'),
+        role enum ('mahasiswa', 'PIC', 'dosen', 'petugas', 'kepala prodi', 'wakil dekan 2', 'wakil rektor 2'),
         point_rank int,
         username varchar(255) NOT NULL,
         nama varchar(255) NOT NULL,
@@ -56,7 +56,7 @@ const createTable = {
         id_laporan int NOT NULL AUTO_INCREMENT,
         id_user_pelapor int NOT NULL,
         id_user_penerima int NOT NULL,
-        status_laporan enum ('unapprove', 'approve', 'progres', 'check', 'done', 'deleted')DEFAULT 'unapprove',
+        status_laporan enum ('unapprove', 'approve', 'progres', 'check', 'done', 'deleted') DEFAULT 'unapprove',
         category enum ('infrastruktur', 'pendidikan', 'organisasi', 'lainnya'),
         title varchar(100) NOT NULL,
         text text NOT NULL,

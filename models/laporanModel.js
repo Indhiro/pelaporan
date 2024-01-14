@@ -51,7 +51,7 @@ class laporanModel {
             lokasi_latitude: req.body.lokasi_latitude,
             image: req.body.image
         }
-        // return console.log(req.body);
+        return console.log(req.body);
         let query = `INSERT INTO ${dbName}.tb_laporan SET ?`;
         con.query(query, laporanData, function(err, result, fields) {
             if (err) throw err;
