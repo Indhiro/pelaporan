@@ -20,7 +20,16 @@ class laporanController {
     static deleteLaporan(req, res, next) {
         laporanModel.deleteLaporan(req, res, next);
     };
+    
+    static approveLaporan(req, res, next) {
+        laporanModel.approveLaporan(req, res, next);
+    };
 
+    static rejectedLaporan(req, res, next) {
+        laporanModel.rejectedLaporan(req, res, next);
+    };
+
+    
 }
 
 module.exports = laporanController;

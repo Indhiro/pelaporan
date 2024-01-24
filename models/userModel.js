@@ -1,6 +1,7 @@
 const con = require('../config/config');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+let { asynqQuery,getUser,generateNewStatus, generateRejectedStatus } = require('../helpers/helpers');
 let dbName = 'db_laporan'
 
 class userModel {
@@ -31,12 +32,18 @@ class userModel {
         }
     };
 
-    static getUser(req, res, next) {
-        let query = `SELECT * FROM ${dbName}.tb_user ts where ts.role != 'mahasiswa'AND ts.role != 'petugas'`;
-        con.query(query, function(err, result, fields) {
-            if (err) throw err;
-            res.send(result);
-        });
+    static async getUser(req, res, next) {
+        let userId = req.query.userId;
+        if (userId) {
+            let user = await getUser(userId);
+            res.send(user);
+        } else {
+            let query = `SELECT * FROM ${dbName}.tb_user ts where ts.role != 'mahasiswa'AND ts.role != 'petugas'`;
+            con.query(query, function(err, result, fields) {
+                if (err) throw err;
+                res.send(result);
+            });
+        }
     };
 
     static async registerUser(req, res, next) {

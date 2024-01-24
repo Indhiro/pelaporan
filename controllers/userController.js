@@ -9,6 +9,11 @@ class userController {
         userModel.getUser(req, res, next);
     };
 
+    static getAllUser(req, res, next) {
+        userModel.getAllUser(req, res, next);
+    };
+
+
     static registerUser(req, res, next) {
         userModel.registerUser(req, res, next);
     };
