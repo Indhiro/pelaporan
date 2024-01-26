@@ -1,8 +1,15 @@
 const laporanModel = require('../models/laporanModel');
 
 class laporanController {
-    static getLaporan(req, res, next) {
-        laporanModel.getLaporan(req, res, next);
+    static getLaporanDashboard(req, res, next) {
+        laporanModel.getLaporanDashboard(req, res, next);
+    };
+
+    static getLaporanValidation(req, res, next) {
+        laporanModel.getLaporanValidation(req, res, next);
+    };
+    static getLaporanRejected(req, res, next) {
+        laporanModel.getLaporanRejected(req, res, next);
     };
 
     static getTrendLaporan(req, res, next) {

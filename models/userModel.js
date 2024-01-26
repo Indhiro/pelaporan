@@ -8,6 +8,7 @@ class userModel {
     static loginUser(req, res, next) {
         try {
             let { username, password } = req.body;
+            console.log("username password", username, password);
             //VALIDASI
             if (!username) return res.send('Username empty, please try again!');
             if (!password) return res.send('Password empty, please try again!');
@@ -27,7 +28,8 @@ class userModel {
                 }
             });
         } catch (err){
-            res.status(400).send((results[0].id).toString());
+            res.status(400);
+            console.log(err);
             // res.send(500).send()  
         }
     };
