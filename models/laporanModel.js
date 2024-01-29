@@ -268,11 +268,7 @@ class laporanModel {
                         `
             let result = await asynqQuery(query)
 
-            if (searchParam) searchData = result.filter(el => {
-                if (el.category.includes(searchParam) || el.text.includes(searchParam) ||
-                el.category.includes(searchParam) || el.nama.includes(searchParam)) return el
-            })
-            res.send(searchData ? searchData : result);
+            res.send(result);
         } catch (error) {
             console.log('func getLaporanDashboard',error);
             res.send(error.message)
