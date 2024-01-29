@@ -7,33 +7,33 @@ var con = mysql.createConnection({
     port: '8889'
 });
 
-// con.connect(function (err) {
-//     if (err) throw err;
-//     //Query create database dan table if not exists
-//     let queryDb = `CREATE DATABASE IF NOT EXISTS db_laporan`
-//     con.query(queryDb, function(err, result, fields) {
-//         if (err) throw err;
-//     });
-//     con.query(createTable.queryTbUser, function(err, result, fields) {
-//         if (err) throw err;
-//     });
-//     con.query(createTable.queryTbLaporan, function(err, result, fields) {
-//         if (err) throw err;
-//     });
-//     con.query(createTable.queryTbChat, function(err, result, fields) {
-//         if (err) throw err;
-//     });
-//     con.query(createTable.queryTbLikeDislike, function(err, result, fields) {
-//         if (err) throw err;
-//     });
-//     con.query(createTable.queryTbComment, function(err, result, fields) {
-//         if (err) throw err;
-//     });
-//     con.query(createTable.queryTbReport, function(err, result, fields) {
-//         if (err) throw err;
-//     });
-//     console.log("Database connected!");
-// });
+con.connect(function (err) {
+    if (err) throw err;
+    //Query create database dan table if not exists
+    let queryDb = `CREATE DATABASE IF NOT EXISTS db_laporan`
+    con.query(queryDb, function(err, result, fields) {
+        if (err) throw err;
+    });
+    con.query(createTable.queryTbUser, function(err, result, fields) {
+        if (err) throw err;
+    });
+    con.query(createTable.queryTbLaporan, function(err, result, fields) {
+        if (err) throw err;
+    });
+    con.query(createTable.queryTbChat, function(err, result, fields) {
+        if (err) throw err;
+    });
+    con.query(createTable.queryTbLikeDislike, function(err, result, fields) {
+        if (err) throw err;
+    });
+    con.query(createTable.queryTbComment, function(err, result, fields) {
+        if (err) throw err;
+    });
+    con.query(createTable.queryTbReport, function(err, result, fields) {
+        if (err) throw err;
+    });
+    console.log("Database connected!");
+});
 
 //Query create table
 const createTable = {
