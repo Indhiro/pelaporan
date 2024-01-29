@@ -4,17 +4,256 @@ let { asynqQuery,getUser,generateNewStatus, generateRejectedStatus } = require('
 
 class laporanModel {
     static async getLaporanDashboard(req, res, next) {
+        let searchParam = req.query.search;
+        let searchData = null
+        // let sampleData = [ // ON DEV (SAMPLE)
+        //     {
+        //         "id_laporan": 3,
+        //         "id_user_pelapor": 5,
+        //         "id_user_approver1": 1,
+        //         "status_laporan": "done",
+        //         "category": "infrastruktur",
+        //         "title": "Toilet rusak",
+        //         "text": "air berceceran",
+        //         "lokasi_longitude": null,
+        //         "lokasi_latitude": null,
+        //         "image": null,
+        //         "created_at": "2024-01-10T13:07:10.000Z",
+        //         "updated_at": null,
+        //         "deleted_at": null,
+        //         "id_user_approver2": 2,
+        //         "id_user_approver3": 3,
+        //         "layer": null,
+        //         "id_user_approver4": 8,
+        //         "id_petugas": 1,
+        //         "countLike": null,
+        //         "nama": "zayn",
+        //         "role": "petugas",
+        //         "point_rank": 1,
+        //         "nama_penerima": "San"
+        //     },
+        //     {
+        //         "id_laporan": 5,
+        //         "id_user_pelapor": 5,
+        //         "id_user_approver1": 9,
+        //         "status_laporan": "done",
+        //         "category": "infrastruktur",
+        //         "title": "Air keran lantai 2",
+        //         "text": "air tumpah",
+        //         "lokasi_longitude": 123,
+        //         "lokasi_latitude": 321,
+        //         "image": null,
+        //         "created_at": "2024-01-15T12:12:56.000Z",
+        //         "updated_at": null,
+        //         "deleted_at": null,
+        //         "id_user_approver2": 2,
+        //         "id_user_approver3": 3,
+        //         "layer": null,
+        //         "id_user_approver4": 8,
+        //         "id_petugas": 1,
+        //         "countLike": null,
+        //         "nama": "zayn",
+        //         "role": "pengawas",
+        //         "point_rank": 1,
+        //         "nama_penerima": "Lary"
+        //     },
+        //     {
+        //         "id_laporan": 6,
+        //         "id_user_pelapor": 5,
+        //         "id_user_approver1": 1,
+        //         "status_laporan": "approve1",
+        //         "category": "infrastruktur",
+        //         "title": "Gembok pata",
+        //         "text": "kunci tidak bisa",
+        //         "lokasi_longitude": 123,
+        //         "lokasi_latitude": 321,
+        //         "image": null,
+        //         "created_at": "2024-01-15T12:13:17.000Z",
+        //         "updated_at": null,
+        //         "deleted_at": null,
+        //         "id_user_approver2": null,
+        //         "id_user_approver3": null,
+        //         "layer": null,
+        //         "id_user_approver4": null,
+        //         "id_petugas": null,
+        //         "countLike": null,
+        //         "nama": "zayn",
+        //         "role": "petugas",
+        //         "point_rank": 1,
+        //         "nama_penerima": "San"
+        //     },
+        //     {
+        //         "id_laporan": 7,
+        //         "id_user_pelapor": 5,
+        //         "id_user_approver1": 1,
+        //         "status_laporan": "approve2",
+        //         "category": "infrastruktur",
+        //         "title": "Gembok pata",
+        //         "text": "kunci tidak bisa",
+        //         "lokasi_longitude": 123,
+        //         "lokasi_latitude": 321,
+        //         "image": null,
+        //         "created_at": "2024-01-15T12:13:17.000Z",
+        //         "updated_at": null,
+        //         "deleted_at": null,
+        //         "id_user_approver2": null,
+        //         "id_user_approver3": null,
+        //         "layer": null,
+        //         "id_user_approver4": null,
+        //         "id_petugas": null,
+        //         "countLike": null,
+        //         "nama": "zayn",
+        //         "role": "petugas",
+        //         "point_rank": 1,
+        //         "nama_penerima": "San"
+        //     },
+        //     {
+        //         "id_laporan": 8,
+        //         "id_user_pelapor": 5,
+        //         "id_user_approver1": 1,
+        //         "status_laporan": "approve3",
+        //         "category": "infrastruktur",
+        //         "title": "Gembok pata",
+        //         "text": "kunci tidak bisa",
+        //         "lokasi_longitude": 123,
+        //         "lokasi_latitude": 321,
+        //         "image": null,
+        //         "created_at": "2024-01-15T12:13:17.000Z",
+        //         "updated_at": null,
+        //         "deleted_at": null,
+        //         "id_user_approver2": null,
+        //         "id_user_approver3": null,
+        //         "layer": null,
+        //         "id_user_approver4": null,
+        //         "id_petugas": null,
+        //         "countLike": null,
+        //         "nama": "zayn",
+        //         "role": "petugas",
+        //         "point_rank": 1,
+        //         "nama_penerima": "San"
+        //     },
+        //     {
+        //         "id_laporan": 9,
+        //         "id_user_pelapor": 5,
+        //         "id_user_approver1": 1,
+        //         "status_laporan": "approve4",
+        //         "category": "infrastruktur",
+        //         "title": "Gembok pata",
+        //         "text": "kunci tidak bisa",
+        //         "lokasi_longitude": 123,
+        //         "lokasi_latitude": 321,
+        //         "image": null,
+        //         "created_at": "2024-01-15T12:13:17.000Z",
+        //         "updated_at": null,
+        //         "deleted_at": null,
+        //         "id_user_approver2": null,
+        //         "id_user_approver3": null,
+        //         "layer": null,
+        //         "id_user_approver4": null,
+        //         "id_petugas": null,
+        //         "countLike": null,
+        //         "nama": "zayn",
+        //         "role": "petugas",
+        //         "point_rank": 1,
+        //         "nama_penerima": "San"
+        //     },
+        //     {
+        //         "id_laporan": 10,
+        //         "id_user_pelapor": 5,
+        //         "id_user_approver1": 1,
+        //         "status_laporan": "progress",
+        //         "category": "infrastruktur",
+        //         "title": "Gembok pata",
+        //         "text": "kunci tidak bisa",
+        //         "lokasi_longitude": 123,
+        //         "lokasi_latitude": 321,
+        //         "image": null,
+        //         "created_at": "2024-01-15T12:13:17.000Z",
+        //         "updated_at": null,
+        //         "deleted_at": null,
+        //         "id_user_approver2": null,
+        //         "id_user_approver3": null,
+        //         "layer": null,
+        //         "id_user_approver4": null,
+        //         "id_petugas": null,
+        //         "countLike": null,
+        //         "nama": "zayn",
+        //         "role": "petugas",
+        //         "point_rank": 1,
+        //         "nama_penerima": "San"
+        //     },
+        //     {
+        //         "id_laporan": 11,
+        //         "id_user_pelapor": 5,
+        //         "id_user_approver1": 1,
+        //         "status_laporan": "check",
+        //         "category": "infrastruktur",
+        //         "title": "Gembok pata",
+        //         "text": "kunci tidak bisa",
+        //         "lokasi_longitude": 123,
+        //         "lokasi_latitude": 321,
+        //         "image": null,
+        //         "created_at": "2024-01-15T12:13:17.000Z",
+        //         "updated_at": null,
+        //         "deleted_at": null,
+        //         "id_user_approver2": null,
+        //         "id_user_approver3": null,
+        //         "layer": null,
+        //         "id_user_approver4": null,
+        //         "id_petugas": null,
+        //         "countLike": null,
+        //         "nama": "zayn",
+        //         "role": "petugas",
+        //         "point_rank": 1,
+        //         "nama_penerima": "San"
+        //     },
+        //     {
+        //         "id_laporan": 40,
+        //         "id_user_pelapor": 5,
+        //         "id_user_approver1": 9,
+        //         "status_laporan": "done",
+        //         "category": "infrastruktur",
+        //         "title": "Air Keran rusak",
+        //         "text": "Air keran lantai 1 rusak",
+        //         "lokasi_longitude": null,
+        //         "lokasi_latitude": null,
+        //         "image": null,
+        //         "created_at": "2024-01-26T05:11:11.000Z",
+        //         "updated_at": null,
+        //         "deleted_at": null,
+        //         "id_user_approver2": 2,
+        //         "id_user_approver3": 3,
+        //         "layer": 3,
+        //         "id_user_approver4": 8,
+        //         "id_petugas": 1,
+        //         "countLike": null,
+        //         "nama": "zayn",
+        //         "role": "pengawas",
+        //         "point_rank": 1,
+        //         "nama_penerima": "Lary"
+        //     }
+        // ]
+        // if (searchParam) searchData = sampleData.filter(el => {
+        //     if (el.category.includes(searchParam) || el.text.includes(searchParam) ||
+        //     el.category.includes(searchParam) || el.nama.includes(searchParam)) return el
+        // })
+        // return res.send(searchData ? searchData : sampleData) // DEV
         try {
             // let userQuery = `select * from ${dbName}.tb_user tbu where tbu.id_user = ${+id_user}`
             let userlogin = req.query.userId;
-            console.log("userLogin", userlogin);
+            let searchParam = req.query.search;
             let user = await getUser(userlogin)
-            // console.log(user);
             let role = user[0].role;
             let whereCondition = '';
             let where = laporanStatusByRoleDashboard(role);
             if (user && where) whereCondition = `where tl.status_laporan IN (${where})` // JIKE LEMPAR PARAM userId, pake filter, kalo ga ya ga
-            console.log(role , whereCondition);
+            if (whereCondition) {
+                whereCondition += ` AND (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
+                or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
+            } else {
+                whereCondition += ` WHERE (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
+                or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
+            }
 
             let query = `SELECT tl.*, tlds.countLike, tu.nama, tu.role, tu.point_rank, tuun.nama_penerima, tuun.role
                         FROM ${dbName}.tb_laporan tl
@@ -29,9 +268,14 @@ class laporanModel {
                         ${whereCondition}
                         `
             let result = await asynqQuery(query)
-            res.send(result);
+
+            if (searchParam) searchData = result.filter(el => {
+                if (el.category.includes(searchParam) || el.text.includes(searchParam) ||
+                el.category.includes(searchParam) || el.nama.includes(searchParam)) return el
+            })
+            res.send(searchData ? searchData : result);
         } catch (error) {
-            console.log(error);
+            console.log('func getLaporanDashboard',error);
             res.send(error.message)
         }
     }
@@ -47,7 +291,6 @@ class laporanModel {
             let whereCondition = '';
             let where = laporanStatusByRoleValidation(role);
             if (user && where) whereCondition = `where tl.status_laporan IN (${where})` // JIKE LEMPAR PARAM userId, pake filter, kalo ga ya ga
-            console.log(role , whereCondition);
 
             let query = `SELECT tl.*, tlds.countLike, tu.nama, tu.role, tu.point_rank, tuun.nama_penerima, tuun.role
                         FROM ${dbName}.tb_laporan tl
@@ -73,9 +316,7 @@ class laporanModel {
         try {
             // let userQuery = `select * from ${dbName}.tb_user tbu where tbu.id_user = ${+id_user}`
             let userlogin = req.query.userId;
-            console.log("userLogin", userlogin);
             let user = await getUser(userlogin)
-            // console.log(user);
             let role = user[0].role;
             let whereCondition = '';
             let where = laporanStatusByRoleRejected(role);
@@ -250,7 +491,6 @@ class laporanModel {
             res.status(400).send(error.message)
         }
     }
-
     
 }
 
