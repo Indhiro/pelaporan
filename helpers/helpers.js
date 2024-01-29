@@ -13,7 +13,6 @@ function asynqQuery(query, params) {
 async function getUser(userId) {
     try {
         let user = await asynqQuery(`select * from ${dbName}.tb_user where id_user = ${userId}`);
-        console.log(userId);
         return user
     } catch (error) {
         console.log(error);

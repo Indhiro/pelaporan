@@ -6,6 +6,11 @@ let dbName = 'db_laporan'
 
 class userModel {
     static loginUser(req, res, next) {
+        // return res.send([{ // ON DEV 
+        //     id_user: 1,
+        //     role: 'petugas',
+        //     nama: 'Malik'
+        // }])
         try {
             let { username, password } = req.body;
             console.log("username password", username, password);
@@ -29,12 +34,19 @@ class userModel {
             });
         } catch (err){
             res.status(400);
-            console.log(err);
+            console.log('func loginUser',err);
             // res.send(500).send()  
         }
     };
 
     static async getUser(req, res, next) {
+        // return res.send([ // ON DEV
+        //     {
+        //         id_user: 1,
+        //         role: 'petugas',
+        //         nama: 'Malik'
+        //     }
+        // ])
         let userId = req.query.userId;
         if (userId) {
             let user = await getUser(userId);
@@ -137,6 +149,7 @@ class userModel {
         });
 
     };
+
     static deleteUser(req, res, next) {
         let id_user = req.body.id_user
         let deleted_at = `CURRENT_TIMESTAMP`;
