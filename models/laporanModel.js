@@ -239,7 +239,6 @@ class laporanModel {
         // })
         // return res.send(searchData ? searchData : sampleData) // DEV
         try {
-            // let userQuery = `select * from ${dbName}.tb_user tbu where tbu.id_user = ${+id_user}`
             let userlogin = req.query.userId;
             let searchParam = req.query.search;
             let user = await getUser(userlogin)
