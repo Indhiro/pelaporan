@@ -39,7 +39,8 @@ function generateRejectedStatus(laporan, userLogin) {
     if (status == 'approve1' && userRole == 'kepala prodi') return { userId: userLogin.id_user, status: 'rejected' }; // END CASE 1
     if (status == 'approve2' && userRole == 'wakil dekan 2') return { userId: userLogin.id_user, status: 'rejected' };
     if (status == 'approve3' && userRole == 'wakil rektor 2') return { userId: userLogin.id_user, status: 'rejected' }; // END CASE 2
-    if (status == 'check' && userRole == 'pengawas') return { userId: userLogin.id_user, status: 'progress' };
+    if (status == 'check' && userRole == 'pengawas') return { userId: userLogin.id_user, status: 'rejected' };
+    if (status == 'progress' && userRole == 'pengawas') return { userId: userLogin.id_user, status: 'rejected' };
     return null
 }
 
