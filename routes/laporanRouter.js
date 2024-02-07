@@ -11,5 +11,7 @@ laporanRouter.put('/update-laporan', laporanController.updateLaporan);
 laporanRouter.put('/delete-laporan', laporanController.deleteLaporan);
 laporanRouter.put('/approve', laporanController.approveLaporan);
 laporanRouter.put('/rejected', laporanController.rejectedLaporan);
+laporanRouter.get('/get-approve', laporanController.getApproveByLaporanId);
+
 
 module.exports = laporanRouter;

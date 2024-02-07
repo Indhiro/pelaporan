@@ -22,11 +22,17 @@ async function getUser(userId) {
 function generateNewStatus(laporan, userLogin) {
     let status = laporan.status_laporan;
     let userRole = userLogin.role;
-    if (status == 'submitted' && userRole == 'pengawas') return { userId: userLogin.id_user, status: 'approve1' };
-    if (status == 'approve1' && userRole == 'kepala prodi') return { userId: userLogin.id_user, status: 'approve2' }; // END CASE 1
-    if (status == 'approve2' && userRole == 'wakil dekan 2') return { userId: userLogin.id_user, status: 'approve3' };
-    if (status == 'approve3' && userRole == 'wakil rektor 2') return { userId: userLogin.id_user, status: 'approve4' }; // END CASE 2
-    if (status == 'approve4' && userRole == 'petugas') return { userId: userLogin.id_user, status: 'progress' }; // PETUGAS MENGERJAKAN LAPORAN/KERUSAKAN
+    if (status == 'submitted' && userRole == 'pengawas') return { userId: userLogin.id_user, status: 'approve_pengawas' };
+    if (status == 'approve_pengawas' && userRole == 'kepala prodi') {
+        if (teruskan == true) return { userId: userLogin.id_user, status: 'approve_kepala_prodi' }; // END CASE 1
+        if (teruskan == false) return { userId: userLogin.id_user, status: 'final_approve' }; // END CASE 1
+    }
+    if (status == 'approve_kepala_prodi' && userRole == 'wakil dekan 2') {
+        if (teruskan == true) return { userId: userLogin.id_user, status: 'approve_wakil_dekan_2' }; // END CASE 1
+        if (teruskan == false) return { userId: userLogin.id_user, status: 'final_approve' }; // END CASE 1
+    }
+    if (status == 'approve_wakil_dekan_2' && userRole == 'wakil rektor 2') return { userId: userLogin.id_user, status: 'final_approve' }; // END CASE 2
+    if (status == 'final_approve' && userRole == 'petugas') return { userId: userLogin.id_user, status: 'progress' }; // PETUGAS MENGERJAKAN LAPORAN/KERUSAKAN
     if (status == 'progress' && userRole == 'petugas') return { userId: userLogin.id_user, status: 'check' }; // PETUGAS SELESAI MENGERJAKAN DAN MENGUBAH STATUS KE CHECK AGAR DILAKUKAN PENGECEKAN
     if (status == 'check' && userRole == 'pengawas') return { userId: userLogin.id_user, status: 'done' };
     return null
@@ -36,11 +42,12 @@ function generateRejectedStatus(laporan, userLogin) {
     let status = laporan.status_laporan;
     let userRole = userLogin.role;
     if (status == 'submitted' && userRole == 'pengawas') return { userId: userLogin.id_user, status: 'rejected' }; // BUTUH NOTES
-    if (status == 'approve1' && userRole == 'kepala prodi') return { userId: userLogin.id_user, status: 'rejected' }; // END CASE 1
-    if (status == 'approve2' && userRole == 'wakil dekan 2') return { userId: userLogin.id_user, status: 'rejected' };
-    if (status == 'approve3' && userRole == 'wakil rektor 2') return { userId: userLogin.id_user, status: 'rejected' }; // END CASE 2
+    if (status == 'approve_pengawas' && userRole == 'kepala prodi') return { userId: userLogin.id_user, status: 'rejected' }; // END CASE 1
+    if (status == 'approve_kepala_prodi' && userRole == 'wakil dekan 2') return { userId: userLogin.id_user, status: 'rejected' };
+    if (status == 'approve_wakil_dekan_2' && userRole == 'wakil rektor 2') return { userId: userLogin.id_user, status: 'rejected' }; // END CASE 2
+    if (status == 'final_approve' && userRole == 'petugas') return { userId: userLogin.id_user, status: 'rejected' }; // PETUGAS MENGERJAKAN LAPORAN/KERUSAKAN
+    if (status == 'progress' && userRole == 'petugas') return { userId: userLogin.id_user, status: 'rejected' }; // PETUGAS SELESAI MENGERJAKAN DAN MENGUBAH STATUS KE CHECK AGAR DILAKUKAN PENGECEKAN
     if (status == 'check' && userRole == 'pengawas') return { userId: userLogin.id_user, status: 'rejected' };
-    if (status == 'progress' && userRole == 'pengawas') return { userId: userLogin.id_user, status: 'rejected' };
     return null
 }
 

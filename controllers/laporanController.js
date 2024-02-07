@@ -36,6 +36,10 @@ class laporanController {
         laporanModel.rejectedLaporan(req, res, next);
     };
 
+    static getApproveByLaporanId(req, res, next) {
+        laporanModel.getApproveByLaporanId(req, res, next);
+    };
+
     
 }
 
