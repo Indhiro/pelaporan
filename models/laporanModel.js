@@ -61,7 +61,7 @@ class laporanModel {
         //         "id_laporan": 6,
         //         "id_user_pelapor": 5,
         //         "id_user_approver1": 1,
-        //         "status_laporan": "approve1",
+        //         "status_laporan": "approve_pengawas",
         //         "category": "infrastruktur",
         //         "title": "Gembok pata",
         //         "text": "kunci tidak bisa",
@@ -86,7 +86,7 @@ class laporanModel {
         //         "id_laporan": 7,
         //         "id_user_pelapor": 5,
         //         "id_user_approver1": 1,
-        //         "status_laporan": "approve2",
+        //         "status_laporan": "approve_kepala_prodi",
         //         "category": "infrastruktur",
         //         "title": "Gembok pata",
         //         "text": "kunci tidak bisa",
@@ -111,7 +111,7 @@ class laporanModel {
         //         "id_laporan": 8,
         //         "id_user_pelapor": 5,
         //         "id_user_approver1": 1,
-        //         "status_laporan": "approve3",
+        //         "status_laporan": "approve_wakil_dekan_2",
         //         "category": "infrastruktur",
         //         "title": "Gembok pata",
         //         "text": "kunci tidak bisa",
@@ -136,7 +136,7 @@ class laporanModel {
         //         "id_laporan": 9,
         //         "id_user_pelapor": 5,
         //         "id_user_approver1": 1,
-        //         "status_laporan": "approve4",
+        //         "status_laporan": "final_approve",
         //         "category": "infrastruktur",
         //         "title": "Gembok pata",
         //         "text": "kunci tidak bisa",
@@ -246,12 +246,55 @@ class laporanModel {
             let whereCondition = '';
             let where = laporanStatusByRoleDashboard(role);
             if (user && where) whereCondition = `where tl.status_laporan IN (${where})` // JIKE LEMPAR PARAM userId, pake filter, kalo ga ya ga
-            if (whereCondition) {
-                whereCondition += ` AND (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
-                or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
-            } else {
-                whereCondition += ` WHERE (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
-                or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
+            if (searchParam) {
+                if (whereCondition) {
+                    whereCondition += ` AND (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
+                    or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
+                } else {
+                    whereCondition += ` WHERE (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
+                    or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
+                }
+            }
+
+            let query = `SELECT tl.*, tlds.countLike, tu.nama, tu.role, tu.point_rank, tuun.nama_penerima, tuun.role, tuun2.nama_petugas
+                        FROM ${dbName}.tb_laporan tl
+                        left join (SELECT COUNT(tld.id_like_dislike) as countLike, tld.id_laporan
+                            FROM ${dbName}.tb_like_dislike tld
+                            WHERE tld.status_like_dislike = 'like' group by tld.id_laporan) tlds 
+                            on tl.id_laporan = tlds.id_laporan
+                        left join db_laporan.tb_user tu
+                            on tl.id_user_pelapor = tu.id_user
+                        left join (select tuu2.nama as nama_petugas, tuu2.id_user
+                            from db_laporan.tb_user tuu2) tuun2 on tl.id_petugas = tuun2.id_user
+                        left join (select tuu.nama as nama_penerima, tuu.id_user, tuu.role
+                            from db_laporan.tb_user tuu) tuun on tl.id_user_approver1 = tuun.id_user
+                        ${whereCondition}
+                        `
+            let result = await asynqQuery(query)
+            res.send(result);
+        } catch (error) {
+            console.log('func getLaporanDashboard',error);
+            res.send(error.message)
+        }
+    }
+
+    static async getLaporanValidation(req, res, next) {
+        try {
+            let userlogin = req.query.userId;
+            let searchParam = req.query.search;
+            let user = await getUser(userlogin)
+            let role = user[0].role;
+            let whereCondition = '';
+            let where = laporanStatusByRoleValidation(role);
+            if (user && where) whereCondition = `where tl.status_laporan IN (${where})` // JIKE LEMPAR PARAM userId, pake filter, kalo ga ya ga
+            if (searchParam) {
+                if (whereCondition) {
+                    whereCondition += ` AND (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
+                    or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
+                } else {
+                    whereCondition += ` WHERE (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
+                    or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
+                }
             }
 
             let query = `SELECT tl.*, tlds.countLike, tu.nama, tu.role, tu.point_rank, tuun.nama_penerima, tuun.role
@@ -267,7 +310,10 @@ class laporanModel {
                         ${whereCondition}
                         `
             let result = await asynqQuery(query)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 46dae78154b789bf2bbcd98307cca0eb3b0054a0
             res.send(result);
         } catch (error) {
             console.log('func getLaporanDashboard',error);
@@ -275,48 +321,24 @@ class laporanModel {
         }
     }
 
-    static async getLaporanValidation(req, res, next) {
-        try {
-            // let userQuery = `select * from ${dbName}.tb_user tbu where tbu.id_user = ${+id_user}`
-            let userlogin = req.query.userId;
-            console.log("userLogin", userlogin);
-            let user = await getUser(userlogin)
-            // console.log(user);
-            let role = user[0].role;
-            let whereCondition = '';
-            let where = laporanStatusByRoleValidation(role);
-            if (user && where) whereCondition = `where tl.status_laporan IN (${where})` // JIKE LEMPAR PARAM userId, pake filter, kalo ga ya ga
-
-            let query = `SELECT tl.*, tlds.countLike, tu.nama, tu.role, tu.point_rank, tuun.nama_penerima, tuun.role
-                        FROM ${dbName}.tb_laporan tl
-                        left join (SELECT COUNT(tld.id_like_dislike) as countLike, tld.id_laporan
-                            FROM ${dbName}.tb_like_dislike tld
-                            WHERE tld.status_like_dislike = 'like' group by tld.id_laporan) tlds 
-                            on tl.id_laporan = tlds.id_laporan
-                        left join db_laporan.tb_user tu
-                            on tl.id_user_pelapor = tu.id_user
-                        left join (select tuu.nama as nama_penerima, tuu.id_user, tuu.role
-                            from db_laporan.tb_user tuu) tuun on tl.id_user_approver1 = tuun.id_user
-                        ${whereCondition}
-                        `
-            let result = await asynqQuery(query)
-            res.send(result);
-        } catch (error) {
-            console.log(error);
-            res.send(error.message)
-        }
-    }
-
     static async getLaporanRejected(req, res, next) {
         try {
-            // let userQuery = `select * from ${dbName}.tb_user tbu where tbu.id_user = ${+id_user}`
             let userlogin = req.query.userId;
+            let searchParam = req.query.search;
             let user = await getUser(userlogin)
             let role = user[0].role;
             let whereCondition = '';
             let where = laporanStatusByRoleRejected(role);
             if (user && where) whereCondition = `where tl.status_laporan IN (${where})` // JIKE LEMPAR PARAM userId, pake filter, kalo ga ya ga
-            console.log(role , whereCondition);
+            if (searchParam) {
+                if (whereCondition) {
+                    whereCondition += ` AND (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
+                    or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
+                } else {
+                    whereCondition += ` WHERE (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
+                    or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
+                }
+            }
 
             let query = `SELECT tl.*, tlds.countLike, tu.nama, tu.role, tu.point_rank, tuun.nama_penerima, tuun.role
                         FROM ${dbName}.tb_laporan tl
@@ -333,7 +355,7 @@ class laporanModel {
             let result = await asynqQuery(query)
             res.send(result);
         } catch (error) {
-            console.log(error);
+            console.log('func getLaporanDashboard',error);
             res.send(error.message)
         }
     }
@@ -436,7 +458,7 @@ class laporanModel {
 
     static async approveLaporan(req, res, next) {
         try {
-            let { id_laporan, userlogin } = req.body;
+            let { id_laporan, userlogin, catatan } = req.body;
             let query = `select * from ${dbName}.tb_laporan tl where tl.id_laporan = ${+id_laporan}`;
             let getLaporan = await asynqQuery(query)
             let getUsers = await getUser(userlogin)
@@ -454,6 +476,14 @@ class laporanModel {
                     where tl.id_laporan = ${id_laporan}`;
     
                     await asynqQuery(updateQuery) // EXECUTE QUERY UPDATE
+
+                    //INSERt INTO tb_approve
+                    
+                    let approveQuery = `INSERT INTO ${dbName}.tb_approve SET
+                    id_user = '${userlogin}', id_laporan = '${id_laporan}', catatan = '${catatan}'`
+                    
+                    await asynqQuery(approveQuery) // EXECUTE QUERY UPDATE
+
                 }
             }
             res.status(200).send('success approve')
@@ -476,36 +506,59 @@ class laporanModel {
                 console.log("MASUK KALI");
                 let resGenerateStatus = generateRejectedStatus(laporan, user)
                 if (resGenerateStatus) {
-                    let updateQuery = `update ${dbName}.tb_laporan tl set tl.status_laporan = '${resGenerateStatus.status}' where tl.id_laporan = ${id_laporan}`;
+                    let updateUserIdToLaporan = '';
+                    if (adjustCol(resGenerateStatus.status)) updateUserIdToLaporan = `,${adjustCol(resGenerateStatus.status)} = ${resGenerateStatus.userId}`
+                    let updateQuery = `update ${dbName}.tb_laporan tl set
+                    tl.status_laporan = '${resGenerateStatus.status}'  
+                    ${updateUserIdToLaporan}
+                    where tl.id_laporan = ${id_laporan}`;
                     await asynqQuery(updateQuery) // EXECUTE QUERY UPDATE
                 }
             }
-            res.status(200).send('success approve')
+            res.status(200).send('success rejected')
         } catch (error) {
             console.log(error);
             res.status(400).send(error.message)
+        }
+    }
+
+    static async getApproveByLaporanId(req, res, next) {
+        // return console.log(req.query);
+        try {
+            let id_laporan = req.query.LapId;
+            let query = `select ta.*, tu.nama, tu.role
+                        from ${dbName}.tb_approve ta 
+                        left join db_laporan.tb_user tu
+                            on ta.id_user = tu.id_user
+                        where ta.id_laporan = ${+id_laporan}
+                        `;
+            let result = await asynqQuery(query)
+            res.send(result);
+        } catch (error) {
+            console.log(error);
+            res.send(error.message)
         }
     }
     
 }
 
 function adjustCol(status) {
-    if (status == 'approve1') return `id_user_approver1`;
-    if (status == 'approve2') return `id_user_approver2`;
-    if (status == 'approve3') return `id_user_approver3`;
-    if (status == 'approve4') return `id_user_approver4`;
+    if (status == 'approve_pengawas') return `id_user_approver1`;
+    if (status == 'approve_kepala_prodi') return `id_user_approver2`;
+    if (status == 'approve_wakil_dekan_2') return `id_user_approver3`;
+    if (status == 'final_approve') return `id_user_approver4`;
     if (status == 'progress') return `id_petugas`;
     return null
 }
 
 function laporanStatusByRoleDashboard(role) {
-    if (role == 'mahasiswa') return `'approve1','approve2','approve3','approve4','progress','check','done'`;
-    if (role == 'dosen') return `'approve1','approve2','approve3','approve4','progress','check','done'`;
-    if (role == 'pengawas') return `'submitted','approve1','approve2','approve3','approve4','progress','check','done'`;
-    if (role == 'kepala prodi') return `'approve1','approve2','approve3','approve4','progress','check','done'`;
-    if (role == 'wakil dekan 2') return `'approve1','approve2','approve3','approve4','progress','check','done'`;
-    if (role == 'wakil rektor 2') return `'approve1','approve2','approve3','approve4','progress','check','done'`;
-    if (role == 'petugas') return `'approve1','approve2','approve3','approve4','progress','check','done'`;
+    if (role == 'mahasiswa') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
+    if (role == 'dosen') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
+    if (role == 'pengawas') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
+    if (role == 'kepala prodi') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
+    if (role == 'wakil dekan 2') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
+    if (role == 'wakil rektor 2') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
+    if (role == 'petugas') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
     return null
 }
 
@@ -513,10 +566,10 @@ function laporanStatusByRoleValidation(role) {
     if (role == 'mahasiswa') return `'test'`;
     if (role == 'dosen') return `'test'`;
     if (role == 'pengawas') return `'submitted','check'`;
-    if (role == 'kepala prodi') return `'approve1'`;
-    if (role == 'wakil dekan 2') return `'approve2'`;
-    if (role == 'wakil rektor 2') return `'approve3'`;
-    if (role == 'petugas') return `'approve4','progress'`;
+    if (role == 'kepala prodi') return `'approve_pengawas'`;
+    if (role == 'wakil dekan 2') return `'approve_kepala_prodi'`;
+    if (role == 'wakil rektor 2') return `'approve_wakil_dekan_2'`;
+    if (role == 'petugas') return `'final_approve','progress'`;
     return null
 }
 
