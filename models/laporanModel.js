@@ -1,11 +1,13 @@
 const con = require('../config/config');
 let dbName = 'db_laporan'
-let { asynqQuery,getUser,generateNewStatus, generateRejectedStatus } = require('../helpers/helpers');
+let { asynqQuery,getUser,generateNewStatus, generateRejectedStatus,getFile } = require('../helpers/helpers');
 
 class laporanModel {
     static async getLaporanDashboard(req, res, next) {
-        let searchParam = req.query.search;
-        let searchData = null
+        // KALAU BISA AMBIL PER 10 - 20 data saja per load (buat pagination)
+
+        // let searchParam = req.query.search;
+        // let searchData = null;
         // let sampleData = [ // ON DEV (SAMPLE)
         //     {
         //         "id_laporan": 3,
@@ -17,7 +19,7 @@ class laporanModel {
         //         "text": "air berceceran",
         //         "lokasi_longitude": null,
         //         "lokasi_latitude": null,
-        //         "image": null,
+        //         "image": await getFile(next,`uploads\\1708581852222\\1708581879704_e46.jpg`),
         //         "created_at": "2024-01-10T13:07:10.000Z",
         //         "updated_at": null,
         //         "deleted_at": null,
@@ -271,6 +273,10 @@ class laporanModel {
                         ${whereCondition}
                         `
             let result = await asynqQuery(query)
+            for (let index = 0; index < result.length; index++) {
+                const element = result[index];
+                element.image = await getFile(next, element.image) // AGAK LAMA KALO BYK DATA (MENDING PAGINATION)
+            }
             res.send(result);
         } catch (error) {
             console.log('func getLaporanDashboard',error);
@@ -310,10 +316,6 @@ class laporanModel {
                         ${whereCondition}
                         `
             let result = await asynqQuery(query)
-<<<<<<< HEAD
-
-=======
->>>>>>> 46dae78154b789bf2bbcd98307cca0eb3b0054a0
             res.send(result);
         } catch (error) {
             console.log('func getLaporanDashboard',error);
@@ -394,7 +396,6 @@ class laporanModel {
     }
 
     static uploadLaporan(req, res, next) {
-        // console.log(req);
         let laporanData = {
             id_user_pelapor: req.body.id_user_pelapor,
             id_user_approver1: req.body.id_user_approver1,
@@ -404,10 +405,15 @@ class laporanModel {
             text: req.body.text,
             lokasi_longitude: req.body.lokasi_longitude,
             lokasi_latitude: req.body.lokasi_latitude,
-            // image: req.body.image,
             layer: req.body.layer
         }
-        // return console.log(req.body, req.files);
+        // FILE NYA UDAH MASUK, CEK FUNCTION MASUKIN FILENYA DI ROUTER(MIDDLEWARE)
+        console.log(req.body);
+        console.log(req.file); // COBA LIHAT DULU, DAN AMBIL PATH NYA DARI req.file -> insert ke db pathnya
+        // laporanData.image = req.file
+        // return res.status(200).send({
+        //     messages: 'done insert'
+        // })
         let query = `INSERT INTO ${dbName}.tb_laporan SET ?`;
         con.query(query, laporanData, function(err, result, fields) {
             if (err) throw err;
@@ -523,7 +529,7 @@ class laporanModel {
     }
 
     static async getApproveByLaporanId(req, res, next) {
-        // return console.log(req.query);
+        return res.send('ok')
         try {
             let id_laporan = req.query.LapId;
             let query = `select ta.*, tu.nama, tu.role

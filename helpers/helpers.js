@@ -1,5 +1,7 @@
-let dbName = 'db_laporan'
-let con = require('../config/config')
+let dbName = 'db_laporan';
+let con = require('../config/config');
+let multer = require('multer');
+let fs = require('fs-extra');
 
 function asynqQuery(query, params) {
     return new Promise((resolve, reject) =>{
@@ -51,7 +53,46 @@ function generateRejectedStatus(laporan, userLogin) {
     return null
 }
 
+function uploadFile() {
+    const timestamp = Date.now();
+    console.log(timestamp);
+    return imageUpload = multer({
+      storage: multer.diskStorage({
+        destination: function (req, file, cb) {
+          const path = `uploads/${timestamp}`;
+          fs.mkdirSync(path, { recursive: true })
+          cb(null, path);
+        },
+  
+        // By default, multer removes file extensions so let's add them back
+        filename: function (req, file, cb) {
+          cb(null, Date.now() + '_' + file.originalname);
+        }
+      }),
+      limits: { fileSize: 10000000 },
+      fileFilter: function (req, file, cb) {
+        if (!file.originalname.match(/\.(jpg|JPG|webp|jpeg|JPEG|png|PNG|gif|GIF|jfif|JFIF)$/)) {
+          req.fileValidationError = 'Only image files are allowed!';
+          return cb(null, false);
+        }
+        cb(null, true);
+      }
+    })
+}
+
+async function getFile(next, path) {
+  try {
+    let data = fs.readFileSync(path)
+    return data.toString('base64')
+  } catch (error) {
+    console.log('helpers.js/getFile', error);
+    return null
+  }
+}
+
 module.exports = {
+    getFile,
+    uploadFile,
     asynqQuery,
     getUser,
     generateNewStatus,
