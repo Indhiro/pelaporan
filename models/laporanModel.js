@@ -529,7 +529,7 @@ class laporanModel {
     }
 
     static async getApproveByLaporanId(req, res, next) {
-        return res.send('ok')
+        // return res.send('ok')
         try {
             let id_laporan = req.query.LapId;
             let query = `select ta.*, tu.nama, tu.role
