@@ -246,7 +246,7 @@ class laporanModel {
         });
     }
 
-    static uploadLaporan(req, res, next) {
+    static async uploadLaporan(req, res, next) {
         let laporanData = {
             id_user_pelapor: +req.body.userIdLogin,
             id_user_penerima: +req.body.selectPengawas,
@@ -254,8 +254,9 @@ class laporanModel {
             category: req.body.kategori,
             title: req.body.judul,
             text: req.body.keterangan,
-            image: req.file.path ? req.file.path : null
+            image: req.file.path ? req.file.path : null,
         }
+        laporanData.id_pengawas =  await getLatestPengawas();
         // FILE NYA UDAH MASUK, CEK FUNCTION MASUKIN FILENYA DI ROUTER(MIDDLEWARE)
         let query = `INSERT INTO ${dbName}.tb_laporan SET ?`;
         con.query(query, laporanData, function(err, result, fields) {
@@ -433,6 +434,18 @@ function laporanStatusByRoleRejected(role) {
     return null
 }
 
+async function getLatestPengawas() { // AUTOMATION
+    try {
+        let query = `select tu.id_user ,tu.total_laporan , tu.nama  from  ${dbName}.tb_user tu where tu.total_laporan = (
+            select min( ${dbName}.tb_user.total_laporan) from  ${dbName}.tb_user
+        ) limit 1;`
+        let latestUser = await con.query(query);
+        console.log(latestUser);
+        return latestUser
+    } catch (error) {
+        console.log('getLatestPengawas', error);
+    }
+}
 
 
 module.exports = laporanModel;
