@@ -63,7 +63,7 @@ const createTable = {
         text text NOT NULL,
         lokasi_longitude int,
         lokasi_latitude int,
-        image blob,
+        image varchar(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP,
         deleted_at TIMESTAMP,

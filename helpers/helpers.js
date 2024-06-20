@@ -60,6 +60,7 @@ function uploadFile() {
       storage: multer.diskStorage({
         destination: function (req, file, cb) {
           const path = `uploads/${timestamp}`;
+          console.log("INI BMW", path);
           fs.mkdirSync(path, { recursive: true })
           cb(null, path);
         },
@@ -81,6 +82,7 @@ function uploadFile() {
 }
 
 async function getFile(next, path) {
+  // console.log("INI PATH",path);
   try {
     let data = fs.readFileSync(path)
     return data.toString('base64')

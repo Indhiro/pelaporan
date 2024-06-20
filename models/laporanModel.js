@@ -275,7 +275,8 @@ class laporanModel {
             let result = await asynqQuery(query)
             for (let index = 0; index < result.length; index++) {
                 const element = result[index];
-                element.image = await getFile(next, element.image) // AGAK LAMA KALO BYK DATA (MENDING PAGINATION)
+                if (element.image) element.image = await getFile(next, element.image)
+                // element.image = await getFile(next, element.image) // AGAK LAMA KALO BYK DATA (MENDING PAGINATION)
             }
             res.send(result);
         } catch (error) {
@@ -400,22 +401,25 @@ class laporanModel {
             id_user_pelapor: req.body.id_user_pelapor,
             id_user_approver1: req.body.id_user_approver1,
             status_laporan: `submitted`, // BY DEFAULT
-            category: req.body.category,
-            title: req.body.title,
-            text: req.body.text,
-            lokasi_longitude: req.body.lokasi_longitude,
-            lokasi_latitude: req.body.lokasi_latitude,
-            layer: req.body.layer
+            category: req.body.kategori,
+            title: req.body.kategori,
+            text: req.body.keterangan,
+            // lokasi_longitude: req.body.lokasi_longitude,
+            // lokasi_latitude: req.body.lokasi_latitude,
+            layer: req.body.selectKepada,
+            // image: req.file.path
         }
         // FILE NYA UDAH MASUK, CEK FUNCTION MASUKIN FILENYA DI ROUTER(MIDDLEWARE)
-        console.log(req.body);
+        console.log("ini req body", req.body);
         console.log(req.file); // COBA LIHAT DULU, DAN AMBIL PATH NYA DARI req.file -> insert ke db pathnya
         // laporanData.image = req.file
         // return res.status(200).send({
         //     messages: 'done insert'
         // })
         let query = `INSERT INTO ${dbName}.tb_laporan SET ?`;
+        // console.log("INI query", query);
         con.query(query, laporanData, function(err, result, fields) {
+            // console.log(laporanData);
             if (err) throw err;
             res.send(result);
         });
