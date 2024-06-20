@@ -6,11 +6,6 @@ let dbName = 'db_laporan'
 
 class userModel {
     static loginUser(req, res, next) {
-        // return res.send([{ // ON DEV 
-        //     id_user: 1,
-        //     role: 'petugas',
-        //     nama: 'Malik'
-        // }])
         try {
             let { username, password } = req.body;
             console.log("username password", username, password);
@@ -52,7 +47,7 @@ class userModel {
             let user = await getUser(userId);
             res.send(user);
         } else {
-            let query = `SELECT * FROM ${dbName}.tb_user ts where ts.role != 'mahasiswa'AND ts.role != 'petugas'`;
+            let query = `SELECT * FROM ${dbName}.tb_user ts where ts.role != 'mahasiswa' `; // AND ts.role != 'petugas'
             con.query(query, function(err, result, fields) {
                 if (err) throw err;
                 res.send(result);
@@ -62,28 +57,27 @@ class userModel {
 
     static async registerUser(req, res, next) {
         try {
-            let { role, point_rank, username, nama, gender, no_unik, no_telp, image } = req.body;
+            let { role, username, fullName, gender, no_unik, no_telp, image } = req.body; // no_unik dari mana? flow nya gimana?
             let created_at = `CURRENT_TIMESTAMP`;
             let password = await bcrypt.hash(req.body.password, 10);
             //QUERY1
-            let query = `SELECT * FROM ${'`db_laporan`'}.tb_user`;
+            let query = `SELECT * FROM ${'`db_laporan`'}.tb_user WHERE username = '${username}'`;
             con.query(query, function (err, result, fields) {
                 if (err) throw err;
                 //VALIDASI
                 if (!username) return res.send('Username coloumn cant be empty!');
-                if (!nama) return res.send('Nama coloumn cant be empty!');
+                if (!fullName) return res.send('Nama coloumn cant be empty!');
                 if (!gender) return res.send('Gender coloumn cant be empty!');
                 if (!no_unik) return res.send('No_unik name coloumn cant be empty!');
                 if (!no_telp) return res.send('No_telp coloumn cant be empty!');
                 for (let i = 0; i < result.length; i++) {
                     if (username == result[i].username) return res.send('Username used!, please use another username!');
                     if (no_unik == result[i].no_unik) return res.send('No_unik used!, please use another no_unik!');
-
                 };
                 //QUERY2
                 let query2 = `INSERT INTO ${'`db_laporan`'}.tb_user SET
-                        role = '${role}', point_rank = '${point_rank}', username = '${username}', nama = '${nama}', gender = '${gender}', 
-                        no_unik = '${no_unik}', no_telp = '${no_telp}', image = '${image}', created_at = ${created_at}, password = '${password}'`;
+                    role = '${role}', point_rank = 10, username = '${username}', nama = '${fullName}', gender = '${gender}', 
+                    no_unik = ${no_unik}, no_telp = '${no_telp}', image = '${image}', created_at = ${created_at}, password = '${password}'`;
                 con.query(query2, function (err2, result2, fields2) {
                     if (err2) throw err2;
                     res.send(result2);
