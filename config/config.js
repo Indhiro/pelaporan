@@ -3,7 +3,7 @@ var mysql = require('mysql');
 var con = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "Indhiro123",
+    password: "asdasd", // asdasd , Indhiro123
     // port: '8889'
 });
 
@@ -39,7 +39,7 @@ con.connect(function (err) {
 const createTable = {
     queryTbUser: `CREATE TABLE IF NOT EXISTS ${'`db_laporan`'}.tb_user (
         id_user int NOT NULL AUTO_INCREMENT,
-        role enum ('mahasiswa', 'PIC', 'dosen', 'petugas', 'kepala prodi', 'wakil dekan 2', 'wakil rektor 2'),
+        role enum('mahasiswa','dosen','pengawas','petugas','kepala prodi','wakil dekan 2','wakil rektor 2','admin'),
         point_rank int,
         username varchar(255) NOT NULL,
         nama varchar(255) NOT NULL,
@@ -47,7 +47,7 @@ const createTable = {
         gender enum ('laki-laki', 'perempuan') NOT NULL,
         no_unik int NOT NULL,
         no_telp varchar(20) NOT NULL,
-        image blob,
+        image varchar(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP,
         deleted_at TIMESTAMP,
@@ -57,13 +57,13 @@ const createTable = {
         id_laporan int NOT NULL AUTO_INCREMENT,
         id_user_pelapor int NOT NULL,
         id_user_penerima int NOT NULL,
-        status_laporan enum ('unapprove', 'approve', 'progres', 'check', 'done', 'deleted') DEFAULT 'unapprove',
+        status_laporan enum ('submitted','approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','approve_wakil_rektor_2','rejected','progress','check','done','deleted') DEFAULT 'submitted',
         category enum ('infrastruktur', 'pendidikan', 'organisasi', 'lainnya'),
         title varchar(100) NOT NULL,
         text text NOT NULL,
         lokasi_longitude int,
         lokasi_latitude int,
-        image blob,
+        image varchar(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP,
         deleted_at TIMESTAMP,
