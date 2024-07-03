@@ -47,7 +47,7 @@ class userModel {
             let user = await getUser(userId);
             res.send(user);
         } else {
-            let query = `SELECT * FROM ${dbName}.tb_user ts where ts.role != 'mahasiswa' `; // AND ts.role != 'petugas'
+            let query = `SELECT * FROM ${dbName}.tb_user ts where ts.role != 'mahasiswa' and ts.role != 'dosen'`; // AND ts.role != 'petugas'
             con.query(query, function(err, result, fields) {
                 if (err) throw err;
                 res.send(result);
@@ -58,6 +58,7 @@ class userModel {
     static async registerUser(req, res, next) {
         try {
             let { role, username, fullName, gender, no_unik, no_telp, image } = req.body; // no_unik dari mana? flow nya gimana?
+            let total_laporan = 0;
             let created_at = `CURRENT_TIMESTAMP`;
             let password = await bcrypt.hash(req.body.password, 10);
             //QUERY1
@@ -77,7 +78,7 @@ class userModel {
                 //QUERY2
                 let query2 = `INSERT INTO ${'`db_laporan`'}.tb_user SET
                     role = '${role}', point_rank = 10, username = '${username}', nama = '${fullName}', gender = '${gender}', 
-                    no_unik = ${no_unik}, no_telp = '${no_telp}', image = '${image}', created_at = ${created_at}, password = '${password}'`;
+                    no_unik = ${no_unik}, no_telp = '${no_telp}', image = '${image}', created_at = ${created_at}, password = '${password}', total_laporan = '${total_laporan}'`;
                 con.query(query2, function (err2, result2, fields2) {
                     if (err2) throw err2;
                     res.send(result2);

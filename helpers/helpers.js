@@ -22,10 +22,12 @@ async function getUser(userId) {
 }
 
 function generateNewStatus(laporan, userLogin, teruskan) {
+  // enum('submitted','approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','approve_wakil_rektor_2','rejected','progress','check','done','deleted')
     let status = laporan.status_laporan;
     let userRole = userLogin.role;
     if (status == 'submitted' && userRole == 'pengawas') return { userId: userLogin.id_user, status: 'approve_pengawas' };
     if (status == 'approve_pengawas' && userRole == 'kepala prodi') {
+      console.log("teruskan", teruskan);
         if (teruskan == true) return { userId: userLogin.id_user, status: 'approve_kepala_prodi' }; // END CASE 1
         if (teruskan == false) return { userId: userLogin.id_user, status: 'final_approve' }; // END CASE 1
     }
@@ -55,12 +57,12 @@ function generateRejectedStatus(laporan, userLogin) {
 
 function uploadFile() {
     const timestamp = Date.now();
-    console.log(timestamp);
+    // console.log(timestamp);
     return imageUpload = multer({
       storage: multer.diskStorage({
         destination: function (req, file, cb) {
           const path = `uploads/${timestamp}`;
-          console.log("INI BMW", path);
+          // console.log("INI BMW", path);
           fs.mkdirSync(path, { recursive: true })
           cb(null, path);
         },

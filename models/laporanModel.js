@@ -107,7 +107,7 @@ class laporanModel {
                     or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
                 }
             }
-            console.log(role, whereCondition);
+            // console.log(role, whereCondition);
 
             let query = `SELECT tl.*, tlds.countLike, tu.nama, tu.role, tu.point_rank, tuun.nama_penerima, tuun.role, tuun2.nama_petugas
                         FROM ${dbName}.tb_laporan tl
@@ -248,14 +248,16 @@ class laporanModel {
     }
 
     static async uploadLaporan(req, res, next) {
+        // console.log("ini req body", req.body);
         let laporanData = {
             id_user_pelapor: +req.body.userIdLogin,
-            id_user_penerima: +req.body.selectPengawas,
+            id_user_penerima: +req.body.selectKepada,
             status_laporan: `submitted`, // BY DEFAULT
             category: req.body.kategori,
             title: req.body.judul,
             text: req.body.keterangan,
             image: req.file.path ? req.file.path : null,
+            id_pengawas: 0
         }
         laporanData.id_pengawas =  await getLatestPengawas();
         // FILE NYA UDAH MASUK, CEK FUNCTION MASUKIN FILENYA DI ROUTER(MIDDLEWARE)
@@ -266,6 +268,18 @@ class laporanModel {
             if (err) throw err;
             res.send(result);
         });
+
+        let query2 = `update ${dbName}.tb_user set total_laporan = total_laporan + 1 where id_user = ${laporanData.id_pengawas}`
+        con.query(query2, function(err, result, fields) {
+            // console.log(laporanData);
+            if (err) throw err;
+        });
+
+        // let query3 = `update ${dbName}.tb_laporan set id_pengawas = ${laporanData.id_pengawas} where id_laporan = `
+        // con.query(query3, function(err, result, fields) {
+        //     // console.log(laporanData);
+        //     if (err) throw err;
+        // });
     }
 
     static async updateLaporan(req, res, next) {
@@ -317,25 +331,30 @@ class laporanModel {
             let getUsers = await getUser(userlogin)
             let laporan = getLaporan[0];
             let user = getUsers[0]
+            console.log("laporan", laporan);
+            console.log("user", user);
     
             if (laporan && user) {
-                let resGenerateStatus = generateNewStatus(laporan, user)
+                let resGenerateStatus = generateNewStatus(laporan, user) //harus ada teruskan di selanjutnya
+                console.log("resGenerateStatus", resGenerateStatus);
                 if (resGenerateStatus) {
                     let updateUserIdToLaporan = '';
                     if (adjustCol(resGenerateStatus.status)) updateUserIdToLaporan = `,${adjustCol(resGenerateStatus.status)} = ${resGenerateStatus.userId}`
                     let updateQuery = `update ${dbName}.tb_laporan tl set
-                    tl.status_laporan = '${resGenerateStatus.status}'  
+                    tl.status_laporan = '${resGenerateStatus.status}'
                     ${updateUserIdToLaporan}
                     where tl.id_laporan = ${id_laporan}`;
-    
                     await asynqQuery(updateQuery) // EXECUTE QUERY UPDATE
 
                     //INSERt INTO tb_approve
                     
                     let approveQuery = `INSERT INTO ${dbName}.tb_approve SET
-                    id_user = '${userlogin}', id_laporan = '${id_laporan}', catatan = '${catatan}'`
+                    id_user = '${userlogin}', id_laporan = '${id_laporan}', role = '${user.role}', status = 'approved', catatan = '${catatan}'`
                     
                     await asynqQuery(approveQuery) // EXECUTE QUERY UPDATE
+                    console.log("updateQuery", updateQuery);
+                    console.log("approveQuery", approveQuery);
+
 
                 }
             }
@@ -348,7 +367,7 @@ class laporanModel {
 
     static async rejectedLaporan(req, res, next) {
         try {
-            let { id_laporan, userlogin } = req.body;
+            let { id_laporan, userlogin, catatan } = req.body;
             let query = `select * from ${dbName}.tb_laporan tl where tl.id_laporan = ${+id_laporan}`;
             let getLaporan = await asynqQuery(query)
             let getUsers = await getUser(userlogin)
@@ -356,8 +375,8 @@ class laporanModel {
             let user = getUsers[0]
     
             if (laporan && user) {
-                console.log("MASUK KALI");
                 let resGenerateStatus = generateRejectedStatus(laporan, user)
+                console.log("resGenerateStatus", resGenerateStatus);
                 if (resGenerateStatus) {
                     let updateUserIdToLaporan = '';
                     if (adjustCol(resGenerateStatus.status)) updateUserIdToLaporan = `,${adjustCol(resGenerateStatus.status)} = ${resGenerateStatus.userId}`
@@ -366,9 +385,15 @@ class laporanModel {
                     ${updateUserIdToLaporan}
                     where tl.id_laporan = ${id_laporan}`;
                     await asynqQuery(updateQuery) // EXECUTE QUERY UPDATE
+
+                    let rejectQuery = `INSERT INTO ${dbName}.tb_approve SET
+                    id_user = '${userlogin}', id_laporan = '${id_laporan}', role = '${user.role}', status = 'rejected', catatan = '${catatan}'`
+                    
+                    await asynqQuery(rejectQuery) // EXECUTE QUERY UPDATE
                 }
+                
             }
-            res.status(200).send('success rejected')
+            res.status(200).send('success reject')
         } catch (error) {
             console.log(error);
             res.status(400).send(error.message)
@@ -396,10 +421,10 @@ class laporanModel {
 }
 
 function adjustCol(status) {
-    if (status == 'approve_pengawas') return `id_user_approver1`;
-    if (status == 'approve_kepala_prodi') return `id_user_approver2`;
-    if (status == 'approve_wakil_dekan_2') return `id_user_approver3`;
-    if (status == 'final_approve') return `id_user_approver4`;
+    if (status == 'approve_pengawas') return `id_pengawas`;
+    if (status == 'approve_kepala_prodi') return `id_kepala_prodi`;
+    if (status == 'approve_wakil_dekan_2') return `id_wakil_dekan_2`;
+    if (status == 'final_approve') return `id_wakil_rektor_2`;
     if (status == 'progress') return `id_petugas`;
     return null
 }
@@ -439,16 +464,34 @@ function laporanStatusByRoleRejected(role) {
 
 async function getLatestPengawas() { // AUTOMATION
     try {
-        let query = `select tu.id_user ,tu.total_laporan , tu.nama  from  ${dbName}.tb_user tu where tu.total_laporan = (
-            select min( ${dbName}.tb_user.total_laporan) from  ${dbName}.tb_user
+        let id_user
+        let query = `select tu.id_user ,tu.total_laporan , tu.nama  from  ${dbName}.tb_user tu where tu.role = 'pengawas' and tu.total_laporan = (
+        select min( ${dbName}.tb_user.total_laporan) from ${dbName}.tb_user where tb_user.role = 'pengawas'
         ) limit 1;`
-        let latestUser = await con.query(query);
-        console.log(latestUser);
-        return latestUser
+        let latestUser = await asynqQuery (query);
+        id_user =  latestUser[0].id_user
+        // console.log("id_user", id_user);
+        return id_user
     } catch (error) {
-        console.log('getLatestPengawas', error);
+        console.log('error get latest pengawas', error);
     }
 }
 
+async function showDetails() {
+    try {
+        let id_user
+        let query = `select tu.id_user ,tu.total_laporan , tu.nama  from  ${dbName}.tb_user tu where tu.role = 'pengawas' and tu.total_laporan = (
+        select min( ${dbName}.tb_user.total_laporan) from ${dbName}.tb_user where tb_user.role = 'pengawas'
+        ) limit 1;`
+        let latestUser = await asynqQuery (query);
+        id_user =  latestUser[0].id_user
+        // console.log("id_user", id_user);
+        return id_user
+    } catch (error) {
+        console.log('error show details', error);
+    }
+}
+
+// async function 
 
 module.exports = laporanModel;
