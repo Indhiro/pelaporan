@@ -3,7 +3,7 @@ var mysql = require('mysql');
 var con = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "Indhiro123", // asdasd , Indhiro123
+    password: "asdasd", // asdasd , Indhiro123
     // port: '8889'
 });
 
@@ -32,6 +32,9 @@ con.connect(function (err) {
     con.query(createTable.queryTbReport, function(err, result, fields) {
         if (err) throw err;
     });
+    con.query(createTable.queryTbApprove, function(err, result, fields) {
+        if (err) throw err;
+    });
     console.log("Database connected!");
 });
 
@@ -57,7 +60,7 @@ const createTable = {
     queryTbLaporan: `CREATE TABLE IF NOT EXISTS ${'`db_laporan`'}.tb_laporan (
         id_laporan int NOT NULL AUTO_INCREMENT,
         id_user_pelapor int NOT NULL,
-        id_user_penerima int NOT NULL,
+        id_user_penerima int,
         id_pengawas int NOT NULL,
         id_kepala_prodi int,
         id_wakil_dekan_2 int,
@@ -156,11 +159,11 @@ const createTable = {
         id_laporan int NOT NULL,
         role enum('mahasiswa','dosen','pengawas','petugas','kepala prodi','wakil dekan 2','wakil rektor 2','admin'),
         status enum('approved','rejected'),
-        catatan text',
+        catatan text,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP,
         deleted_at TIMESTAMP,
-        PRIMARY KEY (id_report),
+        PRIMARY KEY (id_approver),
         FOREIGN KEY (id_user) REFERENCES tb_user(id_user),
         FOREIGN KEY (id_laporan) REFERENCES tb_laporan(id_laporan)
     )`,

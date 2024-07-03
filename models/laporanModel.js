@@ -5,91 +5,6 @@ let { asynqQuery,getUser,generateNewStatus, generateRejectedStatus,getFile } = r
 class laporanModel {
     static async getLaporanDashboard(req, res, next) {
         // KALAU BISA AMBIL PER 10 - 20 data saja per load (buat pagination)
-
-        // let searchParam = req.query.search;
-        // let searchData = null;
-        // let sampleData = [ // ON DEV (SAMPLE)
-        //     {
-        //         "id_laporan": 3,
-        //         "id_user_pelapor": 5,
-        //         "id_user_approver1": 1,
-        //         "status_laporan": "done",
-        //         "category": "infrastruktur",
-        //         "title": "Toilet rusak",
-        //         "text": "air berceceran",
-        //         "lokasi_longitude": null,
-        //         "lokasi_latitude": null,
-        //         "image": await getFile(next,`uploads\\1708581852222\\1708581879704_e46.jpg`),
-        //         "created_at": "2024-01-10T13:07:10.000Z",
-        //         "updated_at": null,
-        //         "deleted_at": null,
-        //         "id_user_approver2": 2,
-        //         "id_user_approver3": 3,
-        //         "layer": null,
-        //         "id_user_approver4": 8,
-        //         "id_petugas": 1,
-        //         "countLike": null,
-        //         "nama": "zayn",
-        //         "role": "petugas",
-        //         "point_rank": 1,
-        //         "nama_penerima": "San"
-        //     },
-        //     {
-        //         "id_laporan": 9,
-        //         "id_user_pelapor": 5,
-        //         "id_user_approver1": 1,
-        //         "status_laporan": "final_approve",
-        //         "category": "infrastruktur",
-        //         "title": "Gembok pata",
-        //         "text": "kunci tidak bisa",
-        //         "lokasi_longitude": 123,
-        //         "lokasi_latitude": 321,
-        //         "image": null,
-        //         "created_at": "2024-01-15T12:13:17.000Z",
-        //         "updated_at": null,
-        //         "deleted_at": null,
-        //         "id_user_approver2": null,
-        //         "id_user_approver3": null,
-        //         "layer": null,
-        //         "id_user_approver4": null,
-        //         "id_petugas": null,
-        //         "countLike": null,
-        //         "nama": "zayn",
-        //         "role": "petugas",
-        //         "point_rank": 1,
-        //         "nama_penerima": "San"
-        //     },
-        //     {
-        //         "id_laporan": 10,
-        //         "id_user_pelapor": 5,
-        //         "id_user_approver1": 1,
-        //         "status_laporan": "progress",
-        //         "category": "infrastruktur",
-        //         "title": "Gembok pata",
-        //         "text": "kunci tidak bisa",
-        //         "lokasi_longitude": 123,
-        //         "lokasi_latitude": 321,
-        //         "image": null,
-        //         "created_at": "2024-01-15T12:13:17.000Z",
-        //         "updated_at": null,
-        //         "deleted_at": null,
-        //         "id_user_approver2": null,
-        //         "id_user_approver3": null,
-        //         "layer": null,
-        //         "id_user_approver4": null,
-        //         "id_petugas": null,
-        //         "countLike": null,
-        //         "nama": "zayn",
-        //         "role": "petugas",
-        //         "point_rank": 1,
-        //         "nama_penerima": "San"
-        //     }
-        // ]
-        // if (searchParam) searchData = sampleData.filter(el => {
-        //     if (el.category.includes(searchParam) || el.text.includes(searchParam) ||
-        //     el.category.includes(searchParam) || el.nama.includes(searchParam)) return el
-        // })
-        // return res.send(searchData ? searchData : sampleData) // DEV
         try {
             let userlogin = req.query.userId;
             let searchParam = req.query.search;
@@ -168,6 +83,11 @@ class laporanModel {
                         ${whereCondition}
                         `
             let result = await asynqQuery(query)
+            for (let index = 0; index < result.length; index++) {
+                const element = result[index];
+                if (element.image) element.image = await getFile(next, element.image)
+                // element.image = await getFile(next, element.image) // AGAK LAMA KALO BYK DATA (MENDING PAGINATION)
+            }
             res.send(result);
         } catch (error) {
             console.log('func getLaporanDashboard',error);
@@ -251,7 +171,7 @@ class laporanModel {
         // console.log("ini req body", req.body);
         let laporanData = {
             id_user_pelapor: +req.body.userIdLogin,
-            id_user_penerima: +req.body.selectKepada,
+            // id_user_penerima: +req.body.selectKepada,
             status_laporan: `submitted`, // BY DEFAULT
             category: req.body.kategori,
             title: req.body.judul,
