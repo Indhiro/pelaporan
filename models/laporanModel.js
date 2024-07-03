@@ -251,7 +251,7 @@ class laporanModel {
         // console.log("ini req body", req.body);
         let laporanData = {
             id_user_pelapor: +req.body.userIdLogin,
-            id_user_penerima: +req.body.selectKepada,
+            // id_user_penerima: +req.body.selectKepada,
             status_laporan: `submitted`, // BY DEFAULT
             category: req.body.kategori,
             title: req.body.judul,
