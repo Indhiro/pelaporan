@@ -5,91 +5,6 @@ let { asynqQuery,getUser,generateNewStatus, generateRejectedStatus,getFile } = r
 class laporanModel {
     static async getLaporanDashboard(req, res, next) {
         // KALAU BISA AMBIL PER 10 - 20 data saja per load (buat pagination)
-
-        // let searchParam = req.query.search;
-        // let searchData = null;
-        // let sampleData = [ // ON DEV (SAMPLE)
-        //     {
-        //         "id_laporan": 3,
-        //         "id_user_pelapor": 5,
-        //         "id_user_approver1": 1,
-        //         "status_laporan": "done",
-        //         "category": "infrastruktur",
-        //         "title": "Toilet rusak",
-        //         "text": "air berceceran",
-        //         "lokasi_longitude": null,
-        //         "lokasi_latitude": null,
-        //         "image": await getFile(next,`uploads\\1708581852222\\1708581879704_e46.jpg`),
-        //         "created_at": "2024-01-10T13:07:10.000Z",
-        //         "updated_at": null,
-        //         "deleted_at": null,
-        //         "id_user_approver2": 2,
-        //         "id_user_approver3": 3,
-        //         "layer": null,
-        //         "id_user_approver4": 8,
-        //         "id_petugas": 1,
-        //         "countLike": null,
-        //         "nama": "zayn",
-        //         "role": "petugas",
-        //         "point_rank": 1,
-        //         "nama_penerima": "San"
-        //     },
-        //     {
-        //         "id_laporan": 9,
-        //         "id_user_pelapor": 5,
-        //         "id_user_approver1": 1,
-        //         "status_laporan": "final_approve",
-        //         "category": "infrastruktur",
-        //         "title": "Gembok pata",
-        //         "text": "kunci tidak bisa",
-        //         "lokasi_longitude": 123,
-        //         "lokasi_latitude": 321,
-        //         "image": null,
-        //         "created_at": "2024-01-15T12:13:17.000Z",
-        //         "updated_at": null,
-        //         "deleted_at": null,
-        //         "id_user_approver2": null,
-        //         "id_user_approver3": null,
-        //         "layer": null,
-        //         "id_user_approver4": null,
-        //         "id_petugas": null,
-        //         "countLike": null,
-        //         "nama": "zayn",
-        //         "role": "petugas",
-        //         "point_rank": 1,
-        //         "nama_penerima": "San"
-        //     },
-        //     {
-        //         "id_laporan": 10,
-        //         "id_user_pelapor": 5,
-        //         "id_user_approver1": 1,
-        //         "status_laporan": "progress",
-        //         "category": "infrastruktur",
-        //         "title": "Gembok pata",
-        //         "text": "kunci tidak bisa",
-        //         "lokasi_longitude": 123,
-        //         "lokasi_latitude": 321,
-        //         "image": null,
-        //         "created_at": "2024-01-15T12:13:17.000Z",
-        //         "updated_at": null,
-        //         "deleted_at": null,
-        //         "id_user_approver2": null,
-        //         "id_user_approver3": null,
-        //         "layer": null,
-        //         "id_user_approver4": null,
-        //         "id_petugas": null,
-        //         "countLike": null,
-        //         "nama": "zayn",
-        //         "role": "petugas",
-        //         "point_rank": 1,
-        //         "nama_penerima": "San"
-        //     }
-        // ]
-        // if (searchParam) searchData = sampleData.filter(el => {
-        //     if (el.category.includes(searchParam) || el.text.includes(searchParam) ||
-        //     el.category.includes(searchParam) || el.nama.includes(searchParam)) return el
-        // })
-        // return res.send(searchData ? searchData : sampleData) // DEV
         try {
             let userlogin = req.query.userId;
             let searchParam = req.query.search;
@@ -144,7 +59,12 @@ class laporanModel {
             let role = user[0].role;
             let whereCondition = '';
             let where = laporanStatusByRoleValidation(role);
-            if (user && where) whereCondition = `where tl.status_laporan IN (${where})` // JIKE LEMPAR PARAM userId, pake filter, kalo ga ya ga
+            let laporanCondition = ` tl.status_laporan IN (${where}) `
+            if (role == 'petugas') laporanCondition = ` (tl.status_laporan = 'approve_kepala_prodi' and layer = 1) or
+            (tl.status_laporan = 'approve_wakil_dekan_2' and layer = 2) or
+            (tl.status_laporan = 'approve_wakil_rektor_2' and layer = 3) or
+            (tl.status_laporan = 'progress')`
+            if (user && where) whereCondition = `where ${laporanCondition}`
             if (searchParam) {
                 if (whereCondition) {
                     whereCondition += ` AND (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
@@ -168,6 +88,12 @@ class laporanModel {
                         ${whereCondition}
                         `
             let result = await asynqQuery(query)
+            for (let index = 0; index < result.length; index++) {
+                const element = result[index];
+                if (element.image) element.image = await getFile(next, element.image)
+                // element.image = await getFile(next, element.image) // AGAK LAMA KALO BYK DATA (MENDING PAGINATION)
+            }
+
             res.send(result);
         } catch (error) {
             console.log('func getLaporanDashboard',error);
@@ -207,6 +133,11 @@ class laporanModel {
                         ${whereCondition}
                         `
             let result = await asynqQuery(query)
+            for (let index = 0; index < result.length; index++) {
+                const element = result[index];
+                if (element.image) element.image = await getFile(next, element.image)
+                // element.image = await getFile(next, element.image) // AGAK LAMA KALO BYK DATA (MENDING PAGINATION)
+            }
             res.send(result);
         } catch (error) {
             console.log('func getLaporanDashboard',error);
@@ -325,24 +256,39 @@ class laporanModel {
 
     static async approveLaporan(req, res, next) {
         try {
-            let { id_laporan, userlogin, catatan } = req.body;
+            let { id_laporan, userlogin, catatan, user_penerima } = req.body;
             let query = `select * from ${dbName}.tb_laporan tl where tl.id_laporan = ${+id_laporan}`;
             let getLaporan = await asynqQuery(query)
             let getUsers = await getUser(userlogin)
+            let getUserPenerima = await getUser(user_penerima)
             let laporan = getLaporan[0];
-            let user = getUsers[0]
+            let user = getUsers[0];
+            let userPenerima = getUserPenerima[0];
             console.log("laporan", laporan);
-            console.log("user", user);
-    
+            // console.log("laporan", laporan);
+            // return console.log("user_penerima", user_penerima);
+            let layer = 0;
+            if (userPenerima.role == 'kepala prodi') layer = 1;
+            if (userPenerima.role == 'wakil dekan 2') layer = 2;
+            if (userPenerima.role == 'wakil rektor 2') layer = 3;
+            
+
             if (laporan && user) {
-                let resGenerateStatus = generateNewStatus(laporan, user) //harus ada teruskan di selanjutnya
+                if (laporan.status_laporan != 'submitted') layer = laporan.layer
+                console.log("layer", layer);
+                let resGenerateStatus = generateNewStatus(laporan, user, layer) //harus ada teruskan di selanjutnya
                 console.log("resGenerateStatus", resGenerateStatus);
                 if (resGenerateStatus) {
                     let updateUserIdToLaporan = '';
                     if (adjustCol(resGenerateStatus.status)) updateUserIdToLaporan = `,${adjustCol(resGenerateStatus.status)} = ${resGenerateStatus.userId}`
+                    let updateUserByRole = '';
+                    if (user.role == 'pengawas') {
+                        updateUserByRole = `, id_user_penerima = ${+user_penerima}, layer = ${+layer}`
+                    }
                     let updateQuery = `update ${dbName}.tb_laporan tl set
                     tl.status_laporan = '${resGenerateStatus.status}'
                     ${updateUserIdToLaporan}
+                    ${updateUserByRole}
                     where tl.id_laporan = ${id_laporan}`;
                     await asynqQuery(updateQuery) // EXECUTE QUERY UPDATE
 
@@ -350,12 +296,9 @@ class laporanModel {
                     
                     let approveQuery = `INSERT INTO ${dbName}.tb_approve SET
                     id_user = '${userlogin}', id_laporan = '${id_laporan}', role = '${user.role}', status = 'approved', catatan = '${catatan}'`
-                    
                     await asynqQuery(approveQuery) // EXECUTE QUERY UPDATE
                     console.log("updateQuery", updateQuery);
                     console.log("approveQuery", approveQuery);
-
-
                 }
             }
             res.status(200).send('success approve')
@@ -421,22 +364,22 @@ class laporanModel {
 }
 
 function adjustCol(status) {
-    if (status == 'approve_pengawas') return `id_pengawas`;
+    // if (status == 'approve_pengawas') return `id_pengawas`;
     if (status == 'approve_kepala_prodi') return `id_kepala_prodi`;
     if (status == 'approve_wakil_dekan_2') return `id_wakil_dekan_2`;
-    if (status == 'final_approve') return `id_wakil_rektor_2`;
+    if (status == 'approve_wakil_rektor_2') return `id_wakil_rektor_2`;
     if (status == 'progress') return `id_petugas`;
     return null
 }
 
 function laporanStatusByRoleDashboard(role) {
-    if (role == 'mahasiswa') return `'submitted','approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
-    if (role == 'dosen') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
-    if (role == 'pengawas') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
-    if (role == 'kepala prodi') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
-    if (role == 'wakil dekan 2') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
-    if (role == 'wakil rektor 2') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
-    if (role == 'petugas') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
+    if (role == 'mahasiswa') return `'submitted','approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
+    if (role == 'dosen') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
+    if (role == 'pengawas') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
+    if (role == 'kepala prodi') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
+    if (role == 'wakil dekan 2') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
+    if (role == 'wakil rektor 2') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
+    if (role == 'petugas') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
     return null
 }
 
@@ -447,7 +390,7 @@ function laporanStatusByRoleValidation(role) {
     if (role == 'kepala prodi') return `'approve_pengawas'`;
     if (role == 'wakil dekan 2') return `'approve_kepala_prodi'`;
     if (role == 'wakil rektor 2') return `'approve_wakil_dekan_2'`;
-    if (role == 'petugas') return `'final_approve','progress'`;
+    if (role == 'petugas') return `'approve_kepala_prodi', 'approve_wakil_dekan_2', 'approve_wakil_rektor_2', 'progress'`;
     return null
 }
 

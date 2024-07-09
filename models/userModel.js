@@ -47,7 +47,7 @@ class userModel {
             let user = await getUser(userId);
             res.send(user);
         } else {
-            let query = `SELECT * FROM ${dbName}.tb_user ts where ts.role != 'mahasiswa' and ts.role != 'dosen'`; // AND ts.role != 'petugas'
+            let query = `SELECT * FROM ${dbName}.tb_user ts where ts.role != 'mahasiswa'`; // AND ts.role != 'petugas'
             con.query(query, function(err, result, fields) {
                 if (err) throw err;
                 res.send(result);
