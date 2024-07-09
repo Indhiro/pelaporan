@@ -59,7 +59,11 @@ class laporanModel {
             let role = user[0].role;
             let whereCondition = '';
             let where = laporanStatusByRoleValidation(role);
-            if (user && where) whereCondition = `where tl.status_laporan IN (${where})` // JIKE LEMPAR PARAM userId, pake filter, kalo ga ya ga
+            let laporanCondition = ` tl.status_laporan IN (${where}) `
+            if (role == 'petugas') laporanCondition = ` (tl.status_laporan = 'approve_kepala_prodi' and layer = 1) or
+            (tl.status_laporan = 'approve_wakil_dekan_2' and layer = 2) or
+            (tl.status_laporan = 'approve_wakil_rektor_2' and layer = 3) `
+            if (user && where) whereCondition = `where ${laporanCondition}` // JIKE LEMPAR PARAM userId, pake filter, kalo ga ya ga
             if (searchParam) {
                 if (whereCondition) {
                     whereCondition += ` AND (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
