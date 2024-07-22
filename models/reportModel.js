@@ -12,11 +12,12 @@ class reportModel {
     }
 
     static uploadReport(req, res, next) {
+        console.log("INI SUBMIT REPORT");
         let reportData = {
             id_user: req.body.id_user,
             id_laporan: req.body.id_laporan,
             text: req.body.text,
-            point_report: req.body.point_report
+            // point_report: req.body.point_report
         }
 
         let query = `INSERT INTO ${'`db_laporan`'}.tb_comment SET ?`
