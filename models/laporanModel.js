@@ -62,8 +62,9 @@ class laporanModel {
             let laporanCondition = ` tl.status_laporan IN (${where}) `
             if (role == 'petugas') laporanCondition = ` (tl.status_laporan = 'approve_kepala_prodi' and layer = 1) or
             (tl.status_laporan = 'approve_wakil_dekan_2' and layer = 2) or
-            (tl.status_laporan = 'approve_wakil_rektor_2' and layer = 3) `
-            if (user && where) whereCondition = `where ${laporanCondition}` // JIKE LEMPAR PARAM userId, pake filter, kalo ga ya ga
+            (tl.status_laporan = 'approve_wakil_rektor_2' and layer = 3) or
+            (tl.status_laporan = 'progress')`
+            if (user && where) whereCondition = `where ${laporanCondition}`
             if (searchParam) {
                 if (whereCondition) {
                     whereCondition += ` AND (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
@@ -92,6 +93,7 @@ class laporanModel {
                 if (element.image) element.image = await getFile(next, element.image)
                 // element.image = await getFile(next, element.image) // AGAK LAMA KALO BYK DATA (MENDING PAGINATION)
             }
+
             res.send(result);
         } catch (error) {
             console.log('func getLaporanDashboard',error);
@@ -131,6 +133,11 @@ class laporanModel {
                         ${whereCondition}
                         `
             let result = await asynqQuery(query)
+            for (let index = 0; index < result.length; index++) {
+                const element = result[index];
+                if (element.image) element.image = await getFile(next, element.image)
+                // element.image = await getFile(next, element.image) // AGAK LAMA KALO BYK DATA (MENDING PAGINATION)
+            }
             res.send(result);
         } catch (error) {
             console.log('func getLaporanDashboard',error);
@@ -249,24 +256,39 @@ class laporanModel {
 
     static async approveLaporan(req, res, next) {
         try {
-            let { id_laporan, userlogin, catatan } = req.body;
+            let { id_laporan, userlogin, catatan, user_penerima } = req.body;
             let query = `select * from ${dbName}.tb_laporan tl where tl.id_laporan = ${+id_laporan}`;
             let getLaporan = await asynqQuery(query)
             let getUsers = await getUser(userlogin)
+            let getUserPenerima = await getUser(user_penerima)
             let laporan = getLaporan[0];
-            let user = getUsers[0]
+            let user = getUsers[0];
+            let userPenerima = getUserPenerima[0];
             console.log("laporan", laporan);
-            console.log("user", user);
-    
+            // console.log("laporan", laporan);
+            // return console.log("user_penerima", user_penerima);
+            let layer = 0;
+            if (userPenerima.role == 'kepala prodi') layer = 1;
+            if (userPenerima.role == 'wakil dekan 2') layer = 2;
+            if (userPenerima.role == 'wakil rektor 2') layer = 3;
+            
+
             if (laporan && user) {
-                let resGenerateStatus = generateNewStatus(laporan, user) //harus ada teruskan di selanjutnya
+                if (laporan.status_laporan != 'submitted') layer = laporan.layer
+                console.log("layer", layer);
+                let resGenerateStatus = generateNewStatus(laporan, user, layer) //harus ada teruskan di selanjutnya
                 console.log("resGenerateStatus", resGenerateStatus);
                 if (resGenerateStatus) {
                     let updateUserIdToLaporan = '';
                     if (adjustCol(resGenerateStatus.status)) updateUserIdToLaporan = `,${adjustCol(resGenerateStatus.status)} = ${resGenerateStatus.userId}`
+                    let updateUserByRole = '';
+                    if (user.role == 'pengawas') {
+                        updateUserByRole = `, id_user_penerima = ${+user_penerima}, layer = ${+layer}`
+                    }
                     let updateQuery = `update ${dbName}.tb_laporan tl set
                     tl.status_laporan = '${resGenerateStatus.status}'
                     ${updateUserIdToLaporan}
+                    ${updateUserByRole}
                     where tl.id_laporan = ${id_laporan}`;
                     await asynqQuery(updateQuery) // EXECUTE QUERY UPDATE
 
@@ -274,12 +296,9 @@ class laporanModel {
                     
                     let approveQuery = `INSERT INTO ${dbName}.tb_approve SET
                     id_user = '${userlogin}', id_laporan = '${id_laporan}', role = '${user.role}', status = 'approved', catatan = '${catatan}'`
-                    
                     await asynqQuery(approveQuery) // EXECUTE QUERY UPDATE
                     console.log("updateQuery", updateQuery);
                     console.log("approveQuery", approveQuery);
-
-
                 }
             }
             res.status(200).send('success approve')
@@ -345,22 +364,22 @@ class laporanModel {
 }
 
 function adjustCol(status) {
-    if (status == 'approve_pengawas') return `id_pengawas`;
+    // if (status == 'approve_pengawas') return `id_pengawas`;
     if (status == 'approve_kepala_prodi') return `id_kepala_prodi`;
     if (status == 'approve_wakil_dekan_2') return `id_wakil_dekan_2`;
-    if (status == 'final_approve') return `id_wakil_rektor_2`;
+    if (status == 'approve_wakil_rektor_2') return `id_wakil_rektor_2`;
     if (status == 'progress') return `id_petugas`;
     return null
 }
 
 function laporanStatusByRoleDashboard(role) {
-    if (role == 'mahasiswa') return `'submitted','approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
-    if (role == 'dosen') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
-    if (role == 'pengawas') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
-    if (role == 'kepala prodi') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
-    if (role == 'wakil dekan 2') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
-    if (role == 'wakil rektor 2') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
-    if (role == 'petugas') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check','done'`;
+    if (role == 'mahasiswa') return `'submitted','approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
+    if (role == 'dosen') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
+    if (role == 'pengawas') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
+    if (role == 'kepala prodi') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
+    if (role == 'wakil dekan 2') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
+    if (role == 'wakil rektor 2') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
+    if (role == 'petugas') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
     return null
 }
 
@@ -371,7 +390,7 @@ function laporanStatusByRoleValidation(role) {
     if (role == 'kepala prodi') return `'approve_pengawas'`;
     if (role == 'wakil dekan 2') return `'approve_kepala_prodi'`;
     if (role == 'wakil rektor 2') return `'approve_wakil_dekan_2'`;
-    if (role == 'petugas') return `'final_approve','progress'`;
+    if (role == 'petugas') return `'approve_kepala_prodi', 'approve_wakil_dekan_2', 'approve_wakil_rektor_2', 'progress'`;
     return null
 }
 

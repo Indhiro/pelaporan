@@ -3,7 +3,7 @@ var mysql = require('mysql');
 var con = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "asdasd", // asdasd , Indhiro123
+    password: "Indhiro123", // asdasd , Indhiro123
     // port: '8889'
 });
 
@@ -68,14 +68,11 @@ const createTable = {
         id_petugas int,
         status_laporan enum ('submitted','approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','approve_wakil_rektor_2','rejected','progress','check','done','deleted') DEFAULT 'submitted',
         category enum ('infrastruktur', 'pendidikan', 'organisasi', 'lainnya'),
+        layer int,
         title varchar(100) NOT NULL,
         text text NOT NULL,
         image varchar(255),
-        catatan_pengawas text,
-        catatan_kepala_prodi text,
-        catatan_wakil_dekan_2 text,
-        catatan_wakil_rektor_2 text,
-        catatan_petugas text,
+        status_validation boolean,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP,
         deleted_at TIMESTAMP,
