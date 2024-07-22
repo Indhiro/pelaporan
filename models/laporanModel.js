@@ -22,7 +22,6 @@ class laporanModel {
                     or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
                 }
             }
-            // console.log(role, whereCondition);
 
             let query = `SELECT tl.*, tlds.countLike, tu.nama, tu.role, tu.point_rank, tuun.nama_penerima, tuun.role, tuun2.nama_petugas
                         FROM ${dbName}.tb_laporan tl
@@ -64,6 +63,9 @@ class laporanModel {
             (tl.status_laporan = 'approve_wakil_dekan_2' and layer = 2) or
             (tl.status_laporan = 'approve_wakil_rektor_2' and layer = 3) or
             (tl.status_laporan = 'progress')`
+            if (role == 'wakil dekan 2') laporanCondition = ` (tl.status_laporan = 'approve_kepala_prodi' and layer = 2) or
+            (tl.status_laporan = 'approve_kepala_prodi' and layer = 3)`
+            if (role == 'wakil rektor 2') laporanCondition = ` (tl.status_laporan = 'approve_wakil_dekan_2' and layer = 3)`
             if (user && where) whereCondition = `where ${laporanCondition}`
             if (searchParam) {
                 if (whereCondition) {
@@ -179,7 +181,6 @@ class laporanModel {
     }
 
     static async uploadLaporan(req, res, next) {
-        // console.log("ini req body", req.body);
         let laporanData = {
             id_user_pelapor: +req.body.userIdLogin,
             // id_user_penerima: +req.body.selectKepada,
@@ -193,16 +194,13 @@ class laporanModel {
         laporanData.id_pengawas =  await getLatestPengawas();
         // FILE NYA UDAH MASUK, CEK FUNCTION MASUKIN FILENYA DI ROUTER(MIDDLEWARE)
         let query = `INSERT INTO ${dbName}.tb_laporan SET ?`;
-        // console.log("INI query", query);
         con.query(query, laporanData, function(err, result, fields) {
-            // console.log(laporanData);
             if (err) throw err;
             res.send(result);
         });
 
         let query2 = `update ${dbName}.tb_user set total_laporan = total_laporan + 1 where id_user = ${laporanData.id_pengawas}`
         con.query(query2, function(err, result, fields) {
-            // console.log(laporanData);
             if (err) throw err;
         });
 
@@ -264,9 +262,6 @@ class laporanModel {
             let laporan = getLaporan[0];
             let user = getUsers[0];
             let userPenerima = getUserPenerima[0];
-            console.log("laporan", laporan);
-            // console.log("laporan", laporan);
-            // return console.log("user_penerima", user_penerima);
             let layer = 0;
             if (userPenerima.role == 'kepala prodi') layer = 1;
             if (userPenerima.role == 'wakil dekan 2') layer = 2;
@@ -275,9 +270,7 @@ class laporanModel {
 
             if (laporan && user) {
                 if (laporan.status_laporan != 'submitted') layer = laporan.layer
-                console.log("layer", layer);
                 let resGenerateStatus = generateNewStatus(laporan, user, layer) //harus ada teruskan di selanjutnya
-                console.log("resGenerateStatus", resGenerateStatus);
                 if (resGenerateStatus) {
                     let updateUserIdToLaporan = '';
                     if (adjustCol(resGenerateStatus.status)) updateUserIdToLaporan = `,${adjustCol(resGenerateStatus.status)} = ${resGenerateStatus.userId}`
@@ -297,8 +290,6 @@ class laporanModel {
                     let approveQuery = `INSERT INTO ${dbName}.tb_approve SET
                     id_user = '${userlogin}', id_laporan = '${id_laporan}', role = '${user.role}', status = 'approved', catatan = '${catatan}'`
                     await asynqQuery(approveQuery) // EXECUTE QUERY UPDATE
-                    console.log("updateQuery", updateQuery);
-                    console.log("approveQuery", approveQuery);
                 }
             }
             res.status(200).send('success approve')
@@ -319,7 +310,6 @@ class laporanModel {
     
             if (laporan && user) {
                 let resGenerateStatus = generateRejectedStatus(laporan, user)
-                console.log("resGenerateStatus", resGenerateStatus);
                 if (resGenerateStatus) {
                     let updateUserIdToLaporan = '';
                     if (adjustCol(resGenerateStatus.status)) updateUserIdToLaporan = `,${adjustCol(resGenerateStatus.status)} = ${resGenerateStatus.userId}`
@@ -344,7 +334,7 @@ class laporanModel {
     }
 
     static async getApproveByLaporanId(req, res, next) {
-        return res.send('ok') // DIQUERY NYA TB APPROVE EMG ADA?
+        // return res.send('ok') // DIQUERY NYA TB APPROVE EMG ADA?
         try {
             let id_laporan = req.query.LapId;
             let query = `select ta.*, tu.nama, tu.role
@@ -413,27 +403,12 @@ async function getLatestPengawas() { // AUTOMATION
         ) limit 1;`
         let latestUser = await asynqQuery (query);
         id_user =  latestUser[0].id_user
-        // console.log("id_user", id_user);
         return id_user
     } catch (error) {
         console.log('error get latest pengawas', error);
     }
 }
 
-async function showDetails() {
-    try {
-        let id_user
-        let query = `select tu.id_user ,tu.total_laporan , tu.nama  from  ${dbName}.tb_user tu where tu.role = 'pengawas' and tu.total_laporan = (
-        select min( ${dbName}.tb_user.total_laporan) from ${dbName}.tb_user where tb_user.role = 'pengawas'
-        ) limit 1;`
-        let latestUser = await asynqQuery (query);
-        id_user =  latestUser[0].id_user
-        // console.log("id_user", id_user);
-        return id_user
-    } catch (error) {
-        console.log('error show details', error);
-    }
-}
 
 // async function 
 

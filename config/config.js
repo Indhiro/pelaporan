@@ -142,7 +142,6 @@ const createTable = {
         id_laporan int NOT NULL,
         text text,
         point_report int,
-        status_report enum ('validasi', 'done') DEFAULT 'validasi',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP,
         deleted_at TIMESTAMP,
