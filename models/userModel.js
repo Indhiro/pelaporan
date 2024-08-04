@@ -59,6 +59,7 @@ class userModel {
         try {
             let { role, username, fullName, gender, no_unik, no_telp, image } = req.body; // no_unik dari mana? flow nya gimana?
             let total_laporan = 0;
+            let point_role = 0;
             let created_at = `CURRENT_TIMESTAMP`;
             let password = await bcrypt.hash(req.body.password, 10);
             //QUERY1
@@ -75,9 +76,14 @@ class userModel {
                     if (username == result[i].username) return res.send('Username used!, please use another username!');
                     if (no_unik == result[i].no_unik) return res.send('No_unik used!, please use another no_unik!');
                 };
+                if (role == 'mahasiswa') point_role = 1;
+                if (role == 'dosen' || role == 'pengawas' || role == 'petugas') point_role = 2;
+                if (role == 'kepala prodi') point_role = 3;
+                if (role == 'wakil dekan 2') point_role = 4;
+                if (role == 'wakil rektor 2') point_role = 5;
                 //QUERY2
                 let query2 = `INSERT INTO ${'`db_laporan`'}.tb_user SET
-                    role = '${role}', point_rank = 10, username = '${username}', nama = '${fullName}', gender = '${gender}', 
+                    role = '${role}', point_role = ${point_role}, username = '${username}', nama = '${fullName}', gender = '${gender}', 
                     no_unik = ${no_unik}, no_telp = '${no_telp}', image = '${image}', created_at = ${created_at}, password = '${password}', total_laporan = '${total_laporan}'`;
                 con.query(query2, function (err2, result2, fields2) {
                     if (err2) throw err2;

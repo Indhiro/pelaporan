@@ -1,4 +1,5 @@
 const con = require('../config/config');
+let { asynqQuery,getUser,generateNewStatus, generateRejectedStatus,getFile } = require('../helpers/helpers');
 
 class reportModel {
     static getReport(req, res, next) {
@@ -11,16 +12,19 @@ class reportModel {
         });
     }
 
-    static uploadReport(req, res, next) {
-        console.log("INI SUBMIT REPORT");
+    static async uploadReport(req, res, next) {
+        let point_role = 0
         let reportData = {
             id_user: req.body.id_user,
             id_laporan: req.body.id_laporan,
             text: req.body.text,
-            // point_report: req.body.point_report
+            point_report: point_role
         }
 
-        let query = `INSERT INTO ${'`db_laporan`'}.tb_comment SET ?`
+        let user = await getUser(reportData.id_user);
+        reportData.point_report = user[0].point_role;
+
+        let query = `INSERT INTO ${'`db_laporan`'}.tb_report SET ?`
         con.query(query, reportData, function(err, result, fields) {
             if (err) throw err;
             res.send(result);
