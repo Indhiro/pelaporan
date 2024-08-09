@@ -4,7 +4,7 @@ let { asynqQuery,getUser,generateNewStatus, generateRejectedStatus,getFile } = r
 
 class likeDislikeModel {
     static getLikeDislike(req, res, next) {
-        let id_laporan = req.body.id_laporan
+        let id_laporan = req.query.LapId
         let query = `SELECT * FROM ${'`db_laporan`'}.tb_like_dislike 
                     WHERE id_laporan = ${id_laporan}`
         con.query(query, function(err, result, fields) {
