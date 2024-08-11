@@ -47,7 +47,7 @@ const createTable = {
         username varchar(255) NOT NULL,
         nama varchar(255) NOT NULL,
         password varchar(255) NOT NULL,
-        gender enum ('laki-laki', 'perempuan') NOT NULL,
+        gender enum ('male', 'female') NOT NULL,
         no_unik int NOT NULL,
         no_telp varchar(20) NOT NULL,
         image varchar(255),

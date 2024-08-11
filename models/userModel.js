@@ -35,19 +35,12 @@ class userModel {
     };
 
     static async getUser(req, res, next) {
-        // return res.send([ // ON DEV
-        //     {
-        //         id_user: 1,
-        //         role: 'petugas',
-        //         nama: 'Malik'
-        //     }
-        // ])
         let userId = req.query.userId;
         if (userId) {
             let user = await getUser(userId);
             res.send(user);
         } else {
-            let query = `SELECT * FROM ${dbName}.tb_user ts where ts.role != 'mahasiswa'`; // AND ts.role != 'petugas'
+            let query = `SELECT * FROM ${dbName}.tb_user`; // AND ts.role != 'petugas'
             con.query(query, function(err, result, fields) {
                 if (err) throw err;
                 res.send(result);
@@ -128,22 +121,19 @@ class userModel {
     };
 
     static async updateUser(req, res, next) {
-        let { id_user, username, nama, gender, no_unik, no_telp, image } = req.body;
+        let { id_user, nama, gender, no_telp } = req.body;
         let updated_at = `CURRENT_TIMESTAMP`;
-
         let query = `UPDATE ${'`db_laporan`'}.tb_user SET `;
 
-        if(username) query += ` username = '${username}',`;
         if(nama) query += ` nama = '${nama}',`;
         if(gender) query += ` gender = '${gender}',`;
-        if(no_unik) query += ` no_unik = '${no_unik}',`;
         if(no_telp) query += ` no_telp = '${no_telp}',`;
-        if(image) query += ` image = '${image}',`;
+        // if(image) query += ` image = '${image}',`;
         query += ` updated_at = ${updated_at},`
 
         query = query.slice(0, -1);
         query += ` WHERE id_user = ${id_user}`
-
+        
         con.query(query, function(err, result,  fields) {
             if (err) throw err;
             res.send(result);
