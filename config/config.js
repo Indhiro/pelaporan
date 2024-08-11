@@ -43,11 +43,11 @@ const createTable = {
     queryTbUser: `CREATE TABLE IF NOT EXISTS ${'`db_laporan`'}.tb_user (
         id_user int NOT NULL AUTO_INCREMENT,
         role enum('mahasiswa','dosen','pengawas','petugas','kepala prodi','wakil dekan 2','wakil rektor 2','admin'),
-        point_rank int,
+        point_role int,
         username varchar(255) NOT NULL,
         nama varchar(255) NOT NULL,
         password varchar(255) NOT NULL,
-        gender enum ('laki-laki', 'perempuan') NOT NULL,
+        gender enum ('male', 'female') NOT NULL,
         no_unik int NOT NULL,
         no_telp varchar(20) NOT NULL,
         image varchar(255),

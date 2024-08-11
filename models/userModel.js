@@ -35,19 +35,12 @@ class userModel {
     };
 
     static async getUser(req, res, next) {
-        // return res.send([ // ON DEV
-        //     {
-        //         id_user: 1,
-        //         role: 'petugas',
-        //         nama: 'Malik'
-        //     }
-        // ])
         let userId = req.query.userId;
         if (userId) {
             let user = await getUser(userId);
             res.send(user);
         } else {
-            let query = `SELECT * FROM ${dbName}.tb_user ts where ts.role != 'mahasiswa'`; // AND ts.role != 'petugas'
+            let query = `SELECT * FROM ${dbName}.tb_user`; // AND ts.role != 'petugas'
             con.query(query, function(err, result, fields) {
                 if (err) throw err;
                 res.send(result);
@@ -59,6 +52,7 @@ class userModel {
         try {
             let { role, username, fullName, gender, no_unik, no_telp, image } = req.body; // no_unik dari mana? flow nya gimana?
             let total_laporan = 0;
+            let point_role = 0;
             let created_at = `CURRENT_TIMESTAMP`;
             let password = await bcrypt.hash(req.body.password, 10);
             //QUERY1
@@ -75,9 +69,14 @@ class userModel {
                     if (username == result[i].username) return res.send('Username used!, please use another username!');
                     if (no_unik == result[i].no_unik) return res.send('No_unik used!, please use another no_unik!');
                 };
+                if (role == 'mahasiswa') point_role = 1;
+                if (role == 'dosen' || role == 'pengawas' || role == 'petugas') point_role = 2;
+                if (role == 'kepala prodi') point_role = 3;
+                if (role == 'wakil dekan 2') point_role = 4;
+                if (role == 'wakil rektor 2') point_role = 5;
                 //QUERY2
                 let query2 = `INSERT INTO ${'`db_laporan`'}.tb_user SET
-                    role = '${role}', point_rank = 10, username = '${username}', nama = '${fullName}', gender = '${gender}', 
+                    role = '${role}', point_role = ${point_role}, username = '${username}', nama = '${fullName}', gender = '${gender}', 
                     no_unik = ${no_unik}, no_telp = '${no_telp}', image = '${image}', created_at = ${created_at}, password = '${password}', total_laporan = '${total_laporan}'`;
                 con.query(query2, function (err2, result2, fields2) {
                     if (err2) throw err2;
@@ -122,22 +121,19 @@ class userModel {
     };
 
     static async updateUser(req, res, next) {
-        let { id_user, username, nama, gender, no_unik, no_telp, image } = req.body;
+        let { id_user, nama, gender, no_telp } = req.body;
         let updated_at = `CURRENT_TIMESTAMP`;
-
         let query = `UPDATE ${'`db_laporan`'}.tb_user SET `;
 
-        if(username) query += ` username = '${username}',`;
         if(nama) query += ` nama = '${nama}',`;
         if(gender) query += ` gender = '${gender}',`;
-        if(no_unik) query += ` no_unik = '${no_unik}',`;
         if(no_telp) query += ` no_telp = '${no_telp}',`;
-        if(image) query += ` image = '${image}',`;
+        // if(image) query += ` image = '${image}',`;
         query += ` updated_at = ${updated_at},`
 
         query = query.slice(0, -1);
         query += ` WHERE id_user = ${id_user}`
-
+        
         con.query(query, function(err, result,  fields) {
             if (err) throw err;
             res.send(result);

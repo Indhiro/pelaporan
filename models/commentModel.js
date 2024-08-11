@@ -1,23 +1,33 @@
 const con = require('../config/config');
+let { asynqQuery,getUser,generateNewStatus, generateRejectedStatus,getFile } = require('../helpers/helpers');
 
 class commentModel {
-    static getComment(req, res, next) {
-        let id_laporan = req.body.id_laporan
-        let query = `SELECT * FROM ${'`db_laporan`'}.tb_comment 
-                    WHERE id_laporan = ${id_laporan}`
-        con.query(query, function(err, result, fields) {
-            if (err) throw err;
+    static async getComment(req, res, next) {
+        try {
+            let id_laporan = req.query.LapId;
+            let query = `SELECT tc.*, tu.nama, tu.role
+                        FROM ${'`db_laporan`'}.tb_comment tc
+                        LEFT JOIN ${'`db_laporan`'}.tb_user tu
+                            ON tc.id_user = tu.id_user
+                        WHERE tc.id_laporan = ${+id_laporan}`
+            let result = await asynqQuery(query)
             res.send(result);
-        });
+        } catch (error) {
+           console.log(error);
+           res.send(error.message) 
+        }
     }
 
-    static uploadComment(req, res, next) {
+    static async uploadComment(req, res, next) {
+        let point_role = 0
         let commentData = {
             id_user: req.body.id_user,
             id_laporan: req.body.id_laporan,
             text: req.body.text,
-            point_comment: req.body.point_comment
+            point_comment: point_role
         }
+        let user = await getUser(commentData.id_user);
+        commentData.point_comment = user[0].point_role;
 
         let query = `INSERT INTO ${'`db_laporan`'}.tb_comment SET ?`
         con.query(query, commentData, function(err, result, fields) {
