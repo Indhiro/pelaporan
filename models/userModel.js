@@ -1,7 +1,7 @@
 const con = require('../config/config');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-let { asynqQuery,getUser,generateNewStatus, generateRejectedStatus } = require('../helpers/helpers');
+let { asynqQuery,getUser,generateNewStatus, generateRejectedStatus, getFile } = require('../helpers/helpers');
 let dbName = 'db_laporan'
 
 class userModel {
@@ -18,10 +18,14 @@ class userModel {
                     WHERE username = '${username}'
                     AND deleted_at IS NULL`;
             //EXECUTION QUERY
-            con.query(query, function (err, result, fields) {
+            con.query(query, async function (err, result, fields) {
                 if (err) throw err;
                 if (result == 0) return res.send('Account not found');
                 if (bcrypt.compareSync(req.body.password, result[0].password)) {
+                    for (let index = 0; index < result.length; index++) {
+                        const element = result[index];
+                        if (element.image) element.image = await getFile(next, element.image)
+                    }
                     res.send(result)
                 } else {
                     res.send('Password wrong!')
@@ -38,13 +42,19 @@ class userModel {
         let userId = req.query.userId;
         if (userId) {
             let user = await getUser(userId);
+            for (let index = 0; index < user.length; index++) {
+                const element = user[index];
+                if (element.image) element.image = await getFile(next, element.image)
+            }
             res.send(user);
         } else {
             let query = `SELECT * FROM ${dbName}.tb_user`; // AND ts.role != 'petugas'
-            con.query(query, function(err, result, fields) {
-                if (err) throw err;
-                res.send(result);
-            });
+            let result = await asynqQuery(query)
+            for (let index = 0; index < result.length; index++) {
+                const element = result[index];
+                if (element.image) element.image = await getFile(next, element.image)
+            }
+            res.send(result);
         }
     };
 
@@ -122,15 +132,22 @@ class userModel {
 
     static async updateUser(req, res, next) {
         let { id_user, nama, gender, no_telp } = req.body;
+        let image = req.file.path;
+        let convertedImage = ``
         let updated_at = `CURRENT_TIMESTAMP`;
         let query = `UPDATE ${'`db_laporan`'}.tb_user SET `;
+
+        for (let index = 0; index < image.length; index++) {
+            const char = image[index];
+            if (char == `\\`) convertedImage += `\\\\\\` // MYSQL TIDAK MEMBACA \ cm 1
+            else convertedImage += char
+        }
 
         if(nama) query += ` nama = '${nama}',`;
         if(gender) query += ` gender = '${gender}',`;
         if(no_telp) query += ` no_telp = '${no_telp}',`;
-        // if(image) query += ` image = '${image}',`;
+        if(image) query += ` image = '${convertedImage}',`;
         query += ` updated_at = ${updated_at},`
-
         query = query.slice(0, -1);
         query += ` WHERE id_user = ${id_user}`
         
