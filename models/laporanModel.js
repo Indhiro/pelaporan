@@ -8,6 +8,7 @@ class laporanModel {
         try {
             let userlogin = req.query.userId;
             let searchParam = req.query.search;
+            let sortBy = req.query.sortBy;
             let user = await getUser(userlogin)
             let role = user[0].role;
             let whereCondition = '';
@@ -23,7 +24,7 @@ class laporanModel {
                 }
             }
 
-            let query = queryGetDataFormated(whereCondition)
+            let query = queryGetDataFormated(whereCondition, sortBy)
             let result = await asynqQuery(query)
             for (let index = 0; index < result.length; index++) {
                 const element = result[index];
@@ -41,6 +42,7 @@ class laporanModel {
         try {
             let userlogin = req.query.userId;
             let searchParam = req.query.search;
+            let sortBy = req.query.sortBy;
             let user = await getUser(userlogin)
             let role = user[0].role;
             let whereCondition = '';
@@ -64,7 +66,7 @@ class laporanModel {
                 }
             }
 
-            let query = queryGetDataFormated(whereCondition)
+            let query = queryGetDataFormated(whereCondition, sortBy)
             let result = await asynqQuery(query)
             for (let index = 0; index < result.length; index++) {
                 const element = result[index];
@@ -78,6 +80,39 @@ class laporanModel {
             res.send(error.message)
         }
     }
+
+    static async getLaporanHistory(req, res, next) {
+        // KALAU BISA AMBIL PER 10 - 20 data saja per load (buat pagination)
+        try {
+            let userlogin = req.query.userId;
+            let searchParam = req.query.search;
+            let sortBy = req.query.sortBy;
+            let user = await getUser(userlogin)
+            let whereCondition = '';
+            if (user) whereCondition = `where tl.status_laporan IN ('done')` // JIKE LEMPAR PARAM userId, pake filter, kalo ga ya ga
+            if (searchParam) {
+                if (whereCondition) {
+                    whereCondition += ` AND (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
+                    or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
+                } else {
+                    whereCondition += ` WHERE (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
+                    or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
+                }
+            }
+
+            let query = queryGetDataFormated(whereCondition, sortBy)
+            let result = await asynqQuery(query)
+            for (let index = 0; index < result.length; index++) {
+                const element = result[index];
+                if (element.image) element.image = await getFile(next, element.image)
+                // element.image = await getFile(next, element.image) // AGAK LAMA KALO BYK DATA (MENDING PAGINATION)
+            }
+            res.send(result);
+        } catch (error) {
+            console.log('func getLaporanHistory',error);
+            res.send(error.message)
+        }
+     }
 
     static async getLaporanRejected(req, res, next) {
         try {
@@ -345,38 +380,6 @@ class laporanModel {
             res.send(error.message)
         }
     }
-
-    static async getLaporanHistory(req, res, next) {
-       // KALAU BISA AMBIL PER 10 - 20 data saja per load (buat pagination)
-       try {
-            let userlogin = req.query.userId;
-            let searchParam = req.query.search;
-            let user = await getUser(userlogin)
-            let whereCondition = '';
-            if (user) whereCondition = `where tl.status_laporan IN ('done')` // JIKE LEMPAR PARAM userId, pake filter, kalo ga ya ga
-            if (searchParam) {
-                if (whereCondition) {
-                    whereCondition += ` AND (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
-                    or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
-                } else {
-                    whereCondition += ` WHERE (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
-                    or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
-                }
-            }
-
-            let query = queryGetDataFormated(whereCondition)
-            let result = await asynqQuery(query)
-            for (let index = 0; index < result.length; index++) {
-                const element = result[index];
-                if (element.image) element.image = await getFile(next, element.image)
-                // element.image = await getFile(next, element.image) // AGAK LAMA KALO BYK DATA (MENDING PAGINATION)
-            }
-            res.send(result);
-        } catch (error) {
-            console.log('func getLaporanHistory',error);
-            res.send(error.message)
-        }
-    }
     
 }
 
@@ -436,7 +439,12 @@ async function getLatestPengawas() { // AUTOMATION
     }
 }
 
-function queryGetDataFormated(whereCondition) {
+function queryGetDataFormated(whereCondition, sortBy) {
+    let orderBy = 'total_point desc';
+    if (sortBy) {
+        let arrSortBy = sortBy.split(',');
+        if (arrSortBy[0] == 'date') orderBy = `created_at ${arrSortBy[1]}`
+    }
     let query = `SELECT tl.*, tlds.countLike, tu.nama, tu.role, tu.point_role, tuun.nama_penerima, tuun.role, tuun2.nama_petugas,
         ((SELECT IF(tld3.point_like, tld3.point_like, 0)) - (SELECT IF(tld4.point_dislike, tld4.point_dislike, 0)) +
         (SELECT IF(tc2.point_comment, tc2.point_comment, 0)) - (SELECT IF(tr2.point_report, tr2.point_report, 0))) 
@@ -470,7 +478,7 @@ function queryGetDataFormated(whereCondition) {
             from ${dbName}.tb_report tr
             group by tr.id_laporan) tr2
             on tl.id_laporan = tr2.id_laporan
-        ${whereCondition} order by total_point desc
+        ${whereCondition} order by ${orderBy};
     `
     return query
 }
