@@ -40,6 +40,9 @@ class laporanController {
         laporanModel.getApproveByLaporanId(req, res, next);
     };
 
+    static getLaporanHistory(req, res, next) {
+        laporanModel.getLaporanHistory(req, res, next);
+    };
     
 }
 

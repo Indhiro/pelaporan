@@ -8,6 +8,7 @@ const { uploadFile } = require('../helpers/helpers')
 laporanRouter.get('/get-laporan-dashboard', laporanController.getLaporanDashboard);
 laporanRouter.get('/get-laporan-validation', laporanController.getLaporanValidation);
 laporanRouter.get('/get-laporan-rejected', laporanController.getLaporanRejected);
+laporanRouter.get('/get-laporan-history', laporanController.getLaporanHistory);
 laporanRouter.get('/get-trend-laporan', laporanController.getTrendLaporan);
 // laporanRouter.post('/upload-laporan', upload.single("file"), laporanController.uploadLaporan);
 laporanRouter.post('/upload-laporan', uploadFile().single("file"), laporanController.uploadLaporan);

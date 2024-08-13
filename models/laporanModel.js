@@ -23,43 +23,8 @@ class laporanModel {
                 }
             }
 
-            let query = `SELECT tl.*, tlds.countLike, tu.nama, tu.role, tu.point_role, tuun.nama_penerima, tuun.role, tuun2.nama_petugas,
-                        ((SELECT IF(tld3.point_like, tld3.point_like, 0)) - (SELECT IF(tld4.point_dislike, tld4.point_dislike, 0)) +
-                        (SELECT IF(tc2.point_comment, tc2.point_comment, 0)) - (SELECT IF(tr2.point_report, tr2.point_report, 0))) 
-                        as total_point 
-                        FROM ${dbName}.tb_laporan tl
-                        left join (SELECT COUNT(tld.id_like_dislike) as countLike, tld.id_laporan
-                            FROM ${dbName}.tb_like_dislike tld
-                            WHERE tld.status_like_dislike = 'like' group by tld.id_laporan) tlds
-                            on tl.id_laporan = tlds.id_laporan
-                        left join ${dbName}.tb_user tu
-                            on tl.id_user_pelapor = tu.id_user
-                        left join (select tuu2.nama as nama_petugas, tuu2.id_user
-                            from ${dbName}.tb_user tuu2) tuun2 on tl.id_user_pelapor = tuun2.id_user
-                        left join (select tuu.nama as nama_penerima, tuu.id_user, tuu.role
-                            from ${dbName}.tb_user tuu) tuun on tl.id_user_penerima = tuun.id_user
-                        left join (
-                            select sum(tld2.point_like_dislike) as point_like, tld2.id_laporan
-                            from ${dbName}.tb_like_dislike tld2
-                            WHERE tld2.status_like_dislike = 'like' group by tld2.id_laporan 
-                            ) tld3 on tl.id_laporan = tld3.id_laporan
-                        left join (
-                            select sum(tld2.point_like_dislike) as point_dislike, tld2.id_laporan
-                            from ${dbName}.tb_like_dislike tld2
-                            WHERE tld2.status_like_dislike = 'dislike' group by tld2.id_laporan 
-                            ) tld4 on tl.id_laporan = tld4.id_laporan
-                        left join (select sum(tc.point_comment) as point_comment, tc.id_laporan
-                            from ${dbName}.tb_comment tc
-                            group by tc.id_laporan) tc2
-                            on tl.id_laporan = tc2.id_laporan
-                        left join (select sum(tr.point_report) as point_report, tr.id_laporan
-                            from ${dbName}.tb_report tr
-                            group by tr.id_laporan) tr2
-                            on tl.id_laporan = tr2.id_laporan
-                        ${whereCondition} order by total_point desc
-                        `
+            let query = queryGetDataFormated(whereCondition)
             let result = await asynqQuery(query)
-            console.log(query);
             for (let index = 0; index < result.length; index++) {
                 const element = result[index];
                 if (element.image) element.image = await getFile(next, element.image)
@@ -99,41 +64,7 @@ class laporanModel {
                 }
             }
 
-            let query = `SELECT tl.*, tlds.countLike, tu.nama, tu.role, tu.point_role, tuun.nama_penerima, tuun.role, 
-                        ((SELECT IF(tld3.point_like, tld3.point_like, 0)) - (SELECT IF(tld4.point_dislike, tld4.point_dislike, 0)) +
-                        (SELECT IF(tc2.point_comment, tc2.point_comment, 0)) - (SELECT IF(tr2.point_report, tr2.point_report, 0))) 
-                        as total_point
-                        FROM ${dbName}.tb_laporan tl
-                        left join (SELECT COUNT(tld.id_like_dislike) as countLike, tld.id_laporan
-                            FROM ${dbName}.tb_like_dislike tld
-                            WHERE tld.status_like_dislike = 'like' group by tld.id_laporan) tlds
-                            on tl.id_laporan = tlds.id_laporan
-                        left join ${dbName}.tb_user tu
-                            on tl.id_user_pelapor = tu.id_user
-                        left join (select tuu2.nama as nama_petugas, tuu2.id_user
-                            from ${dbName}.tb_user tuu2) tuun2 on tl.id_user_pelapor = tuun2.id_user
-                        left join (select tuu.nama as nama_penerima, tuu.id_user, tuu.role
-                            from ${dbName}.tb_user tuu) tuun on tl.id_user_penerima = tuun.id_user
-                        left join (
-                            select sum(tld2.point_like_dislike) as point_like, tld2.id_laporan
-                            from ${dbName}.tb_like_dislike tld2
-                            WHERE tld2.status_like_dislike = 'like' group by tld2.id_laporan 
-                            ) tld3 on tl.id_laporan = tld3.id_laporan
-                        left join (
-                            select sum(tld2.point_like_dislike) as point_dislike, tld2.id_laporan
-                            from ${dbName}.tb_like_dislike tld2
-                            WHERE tld2.status_like_dislike = 'dislike' group by tld2.id_laporan 
-                            ) tld4 on tl.id_laporan = tld4.id_laporan
-                        left join (select sum(tc.point_comment) as point_comment, tc.id_laporan
-                            from ${dbName}.tb_comment tc
-                            group by tc.id_laporan) tc2
-                            on tl.id_laporan = tc2.id_laporan
-                        left join (select sum(tr.point_report) as point_report, tr.id_laporan
-                            from ${dbName}.tb_report tr
-                            group by tr.id_laporan) tr2
-                            on tl.id_laporan = tr2.id_laporan
-                        ${whereCondition} order by total_point desc
-                        `
+            let query = queryGetDataFormated(whereCondition)
             let result = await asynqQuery(query)
             for (let index = 0; index < result.length; index++) {
                 const element = result[index];
@@ -271,12 +202,6 @@ class laporanModel {
         con.query(query2, function(err, result, fields) {
             if (err) throw err;
         });
-
-        // let query3 = `update ${dbName}.tb_laporan set id_pengawas = ${laporanData.id_pengawas} where id_laporan = `
-        // con.query(query3, function(err, result, fields) {
-        //     // console.log(laporanData);
-        //     if (err) throw err;
-        // });
     }
 
     static async updateLaporan(req, res, next) {
@@ -420,6 +345,38 @@ class laporanModel {
             res.send(error.message)
         }
     }
+
+    static async getLaporanHistory(req, res, next) {
+       // KALAU BISA AMBIL PER 10 - 20 data saja per load (buat pagination)
+       try {
+            let userlogin = req.query.userId;
+            let searchParam = req.query.search;
+            let user = await getUser(userlogin)
+            let whereCondition = '';
+            if (user) whereCondition = `where tl.status_laporan IN ('done')` // JIKE LEMPAR PARAM userId, pake filter, kalo ga ya ga
+            if (searchParam) {
+                if (whereCondition) {
+                    whereCondition += ` AND (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
+                    or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
+                } else {
+                    whereCondition += ` WHERE (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
+                    or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
+                }
+            }
+
+            let query = queryGetDataFormated(whereCondition)
+            let result = await asynqQuery(query)
+            for (let index = 0; index < result.length; index++) {
+                const element = result[index];
+                if (element.image) element.image = await getFile(next, element.image)
+                // element.image = await getFile(next, element.image) // AGAK LAMA KALO BYK DATA (MENDING PAGINATION)
+            }
+            res.send(result);
+        } catch (error) {
+            console.log('func getLaporanHistory',error);
+            res.send(error.message)
+        }
+    }
     
 }
 
@@ -479,7 +436,43 @@ async function getLatestPengawas() { // AUTOMATION
     }
 }
 
-
-// async function 
+function queryGetDataFormated(whereCondition) {
+    let query = `SELECT tl.*, tlds.countLike, tu.nama, tu.role, tu.point_role, tuun.nama_penerima, tuun.role, tuun2.nama_petugas,
+        ((SELECT IF(tld3.point_like, tld3.point_like, 0)) - (SELECT IF(tld4.point_dislike, tld4.point_dislike, 0)) +
+        (SELECT IF(tc2.point_comment, tc2.point_comment, 0)) - (SELECT IF(tr2.point_report, tr2.point_report, 0))) 
+        as total_point 
+        FROM ${dbName}.tb_laporan tl
+        left join (SELECT COUNT(tld.id_like_dislike) as countLike, tld.id_laporan
+            FROM ${dbName}.tb_like_dislike tld
+            WHERE tld.status_like_dislike = 'like' group by tld.id_laporan) tlds
+            on tl.id_laporan = tlds.id_laporan
+        left join ${dbName}.tb_user tu
+            on tl.id_user_pelapor = tu.id_user
+        left join (select tuu2.nama as nama_petugas, tuu2.id_user
+            from ${dbName}.tb_user tuu2) tuun2 on tl.id_user_pelapor = tuun2.id_user
+        left join (select tuu.nama as nama_penerima, tuu.id_user, tuu.role
+            from ${dbName}.tb_user tuu) tuun on tl.id_user_penerima = tuun.id_user
+        left join (
+            select sum(tld2.point_like_dislike) as point_like, tld2.id_laporan
+            from ${dbName}.tb_like_dislike tld2
+            WHERE tld2.status_like_dislike = 'like' group by tld2.id_laporan 
+            ) tld3 on tl.id_laporan = tld3.id_laporan
+        left join (
+            select sum(tld2.point_like_dislike) as point_dislike, tld2.id_laporan
+            from ${dbName}.tb_like_dislike tld2
+            WHERE tld2.status_like_dislike = 'dislike' group by tld2.id_laporan 
+            ) tld4 on tl.id_laporan = tld4.id_laporan
+        left join (select sum(tc.point_comment) as point_comment, tc.id_laporan
+            from ${dbName}.tb_comment tc
+            group by tc.id_laporan) tc2
+            on tl.id_laporan = tc2.id_laporan
+        left join (select sum(tr.point_report) as point_report, tr.id_laporan
+            from ${dbName}.tb_report tr
+            group by tr.id_laporan) tr2
+            on tl.id_laporan = tr2.id_laporan
+        ${whereCondition} order by total_point desc
+    `
+    return query
+}
 
 module.exports = laporanModel;
