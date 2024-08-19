@@ -445,7 +445,8 @@ function queryGetDataFormated(whereCondition, sortBy) {
         let arrSortBy = sortBy.split(',');
         if (arrSortBy[0] == 'date') orderBy = `created_at ${arrSortBy[1]}`
     }
-    let query = `SELECT tl.*, tlds.countLike, tu.nama, tu.role, tu.point_role, tuun.nama_penerima, tuun.role, tuun2.nama_petugas,
+    let query = `SELECT tl.*, tu.nama, tu.role, tu.point_role, tuun.nama_penerima, tuun.role, tuun2.nama_petugas,
+        ((SELECT IF(tlds.countLike, tlds.countLike, 0)) - (SELECT IF(tldis2.countDislike, tldis2.countDislike, 0))) as countLikeDislike,
         ((SELECT IF(tld3.point_like, tld3.point_like, 0)) - (SELECT IF(tld4.point_dislike, tld4.point_dislike, 0)) +
         (SELECT IF(tc2.point_comment, tc2.point_comment, 0)) - (SELECT IF(tr2.point_report, tr2.point_report, 0))) 
         as total_point 
@@ -454,6 +455,10 @@ function queryGetDataFormated(whereCondition, sortBy) {
             FROM ${dbName}.tb_like_dislike tld
             WHERE tld.status_like_dislike = 'like' group by tld.id_laporan) tlds
             on tl.id_laporan = tlds.id_laporan
+        left join (SELECT COUNT(tldis1.id_like_dislike) as countDislike, tldis1.id_laporan
+            FROM db_laporan.tb_like_dislike tldis1
+            WHERE tldis1.status_like_dislike = 'dislike' group by tldis1.id_laporan) tldis2
+            on tl.id_laporan = tldis2.id_laporan
         left join ${dbName}.tb_user tu
             on tl.id_user_pelapor = tu.id_user
         left join (select tuu2.nama as nama_petugas, tuu2.id_user
