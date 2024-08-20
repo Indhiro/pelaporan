@@ -1,6 +1,6 @@
 const con = require('../config/config');
-let dbName = 'db_laporan'
-let { asynqQuery,getUser,generateNewStatus, generateRejectedStatus,getFile } = require('../helpers/helpers');
+let dbName = 'db_laporan';
+let { asynqQuery,getUser,generateNewStatus, generateRejectedStatus,getFile,generateNotifNotes } = require('../helpers/helpers');
 
 class laporanModel {
     static async getLaporanDashboard(req, res, next) {
@@ -9,6 +9,8 @@ class laporanModel {
             let userlogin = req.query.userId;
             let searchParam = req.query.search;
             let sortBy = req.query.sortBy;
+            let type = req.query.type;
+            let status = req.query.status;
             let user = await getUser(userlogin)
             let role = user[0].role;
             let whereCondition = '';
@@ -23,6 +25,7 @@ class laporanModel {
                     or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
                 }
             }
+            if (type == 'status' && status != 'null') whereCondition += ` AND tl.status_laporan = '${status}' ` // SELECT FILTER STATUS
 
             let query = queryGetDataFormated(whereCondition, sortBy)
             let result = await asynqQuery(query)
@@ -43,6 +46,8 @@ class laporanModel {
             let userlogin = req.query.userId;
             let searchParam = req.query.search;
             let sortBy = req.query.sortBy;
+            let type = req.query.type;
+            let status = req.query.status;
             let user = await getUser(userlogin)
             let role = user[0].role;
             let whereCondition = '';
@@ -56,7 +61,7 @@ class laporanModel {
             (tl.status_laporan = 'approve_kepala_prodi' and layer = 3)`
             if (role == 'wakil rektor 2') laporanCondition = ` (tl.status_laporan = 'approve_wakil_dekan_2' and layer = 3)`
             if (user && where) whereCondition = `where ${laporanCondition}`
-            if (searchParam) {
+            if (searchParam) { // SEARCH BAR
                 if (whereCondition) {
                     whereCondition += ` AND (tl.category like '%${searchParam}%' or tl.title like '%${searchParam}%' 
                     or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
@@ -65,6 +70,7 @@ class laporanModel {
                     or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
                 }
             }
+            if (type == 'status' && status != 'null') whereCondition += ` AND tl.status_laporan = '${status}' ` // SELECT FILTER STATUS
 
             let query = queryGetDataFormated(whereCondition, sortBy)
             let result = await asynqQuery(query)
@@ -87,6 +93,7 @@ class laporanModel {
             let userlogin = req.query.userId;
             let searchParam = req.query.search;
             let sortBy = req.query.sortBy;
+            let type = req.query.type;
             let user = await getUser(userlogin)
             let whereCondition = '';
             if (user) whereCondition = `where tl.status_laporan IN ('done')` // JIKE LEMPAR PARAM userId, pake filter, kalo ga ya ga
@@ -291,7 +298,7 @@ class laporanModel {
             let user = getUsers[0];
             let userPenerima = getUserPenerima[0];
             let layer = 0;
-            console.log(userPenerima);
+            // console.log(userPenerima);
             if (userPenerima){
                 if (userPenerima.role == 'kepala prodi') layer = 1;
                 if (userPenerima.role == 'wakil dekan 2') layer = 2;
@@ -316,10 +323,11 @@ class laporanModel {
                     await asynqQuery(updateQuery) // EXECUTE QUERY UPDATE
 
                     //INSERt INTO tb_approve
-                    
                     let approveQuery = `INSERT INTO ${dbName}.tb_approve SET
                     id_user = '${userlogin}', id_laporan = '${id_laporan}', role = '${user.role}', status = 'approved', catatan = '${catatan}'`
                     await asynqQuery(approveQuery) // EXECUTE QUERY UPDATE
+                    await generateNotifNotes('approve', laporan.id_user_pelapor, user.nama, user.role, id_laporan) // NOTIFICATION
+                    await generateNotifNotes('approve', userPenerima.id_user, user.nama, user.role, id_laporan) // NOTIFICATION
                 }
             }
             res.status(200).send('success approve')
@@ -353,8 +361,8 @@ class laporanModel {
                     id_user = '${userlogin}', id_laporan = '${id_laporan}', role = '${user.role}', status = 'rejected', catatan = '${catatan}'`
                     
                     await asynqQuery(rejectQuery) // EXECUTE QUERY UPDATE
-                }
-                
+                    await generateNotifNotes('reject', laporan.id_user_pelapor, user.nama, user.role, id_laporan) // NOTIFICATION
+                }    
             }
             res.status(200).send('success reject')
         } catch (error) {
@@ -444,6 +452,7 @@ function queryGetDataFormated(whereCondition, sortBy) {
     if (sortBy) {
         let arrSortBy = sortBy.split(',');
         if (arrSortBy[0] == 'date') orderBy = `created_at ${arrSortBy[1]}`
+        if (arrSortBy[0] == 'point') orderBy = `total_point ${arrSortBy[1]}`
     }
     let query = `SELECT tl.*, tlds.countLike, tu.nama, tu.role, tu.point_role, tuun.nama_penerima, tuun.role, tuun2.nama_petugas,
         ((SELECT IF(tld3.point_like, tld3.point_like, 0)) - (SELECT IF(tld4.point_dislike, tld4.point_dislike, 0)) +

@@ -11,15 +11,7 @@ const morgan = require('morgan');
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// app.use(bodyParser.json())
-// app.use(bodyParser.urlencoded());
-// app.use(bodyParser.urlencoded({ extended: true }));
-// app.use(
-//     bodyParser.urlencoded({ extended: false })
-//   );
 app.use(morgan('dev'));
-// app.use(express.static('public'));
-// app.use(express.json());
 app.use(router)
 
 app.use((req, res, next) => {

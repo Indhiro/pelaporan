@@ -35,6 +35,9 @@ con.connect(function (err) {
     con.query(createTable.queryTbApprove, function(err, result, fields) {
         if (err) throw err;
     });
+    con.query(createTable.queryTbNotification, function(err, result, fields) {
+        if (err) throw err;
+    });
     console.log("Database connected!");
 });
 
@@ -52,6 +55,7 @@ const createTable = {
         no_telp varchar(20) NOT NULL,
         image varchar(255),
         total_laporan int,
+        is_validate boolean,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP,
         deleted_at TIMESTAMP,
@@ -162,6 +166,19 @@ const createTable = {
         PRIMARY KEY (id_approver),
         FOREIGN KEY (id_user) REFERENCES tb_user(id_user),
         FOREIGN KEY (id_laporan) REFERENCES tb_laporan(id_laporan)
+    )`,
+    queryTbNotification: `CREATE TABLE IF NOT EXISTS ${'`db_laporan`'}.tb_notification (
+        id int NOT NULL AUTO_INCREMENT,
+        laporan_id int NOT NULL,
+        id_user int NOT NULL,
+        notes varchar(255) NOT NULL,
+        seen boolean,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP,
+        deleted_at TIMESTAMP,
+        PRIMARY KEY (id),
+        FOREIGN KEY (laporan_id) REFERENCES tb_laporan(id_laporan),
+        FOREIGN KEY (id_user) REFERENCES tb_user(id_user)
     )`,
 }
 
