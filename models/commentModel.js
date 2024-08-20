@@ -1,5 +1,6 @@
 const con = require('../config/config');
-let { asynqQuery,getUser,generateNewStatus, generateRejectedStatus,getFile } = require('../helpers/helpers');
+let dbName = 'db_laporan';
+let { asynqQuery,getUser,generateNotifNotes } = require('../helpers/helpers');
 
 class commentModel {
     static async getComment(req, res, next) {
@@ -26,12 +27,16 @@ class commentModel {
             text: req.body.text,
             point_comment: point_role
         }
+        let qGetLap = `select * from ${dbName}.tb_laporan tl where tl.id_laporan = ${+commentData.id_laporan}`;
+        let getLaporan = await asynqQuery(qGetLap)
+        let laporan = getLaporan[0];
         let user = await getUser(commentData.id_user);
         commentData.point_comment = user[0].point_role;
 
-        let query = `INSERT INTO ${'`db_laporan`'}.tb_comment SET ?`
-        con.query(query, commentData, function(err, result, fields) {
+        let query = `INSERT INTO ${dbName}.tb_comment SET ?`
+        con.query(query, commentData,async function(err, result, fields) {
             if (err) throw err;
+            await generateNotifNotes('comment', laporan.id_user_pelapor, user[0].nama, null, commentData.id_laporan)
             res.send(result);
         });
     }

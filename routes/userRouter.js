@@ -10,5 +10,6 @@ userRouter.post('/register', userController.registerUser);
 userRouter.put('/update-pass', userController.updatePassUser);
 userRouter.put('/update-user', uploadFile().single("file"), userController.updateUser);
 userRouter.put('/delete-user', userController.deleteUser);
+userRouter.get('/validate-user', userController.activeValidateUser);
 
 module.exports = userRouter;

@@ -24,37 +24,21 @@ async function getUser(userId) {
 function generateNewStatus(laporan, userLogin, layer) {
   // enum('submitted','approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','approve_wakil_rektor_2','rejected','progress','check','done','deleted')
   // console.log("layer", layer);
-    let status = laporan.status_laporan;
-    let userRole = userLogin.role;
-    if (status == 'submitted' && userRole == 'pengawas') return { userId: userLogin.id_user, status: 'approve_pengawas'};
-    
-    //IF UNTUK PENGAWAS DI DULUANKAN
-    if (status == 'approve_kepala_prodi' && userRole == 'petugas' && layer == 1) return { userId: userLogin.id_user, status: 'progress'};
-    if (status == 'approve_wakil_dekan_2' && userRole == 'petugas' && layer == 2) return { userId: userLogin.id_user, status: 'progress'};
-    if (status == 'approve_wakil_rektor_2' && userRole == 'petugas' && layer == 3) return { userId: userLogin.id_user, status: 'progress'};
-    if (status == 'progress' && userRole == 'petugas') return { userId: userLogin.id_user, status: 'check'};
-    if (status == 'check' && userRole == 'pengawas') return { userId: userLogin.id_user, status: 'done'};
-    console.log(status, userRole, layer);
-    //IF UNTUK PENANGGUNG JAWAB
-    if (status == 'approve_pengawas' && userRole == 'kepala prodi') return { userId: userLogin.id_user, status: 'approve_kepala_prodi'};
-    if (status == 'approve_kepala_prodi' && userRole == 'wakil dekan 2') return { userId: userLogin.id_user, status: 'approve_wakil_dekan_2'};
-    if (status == 'approve_wakil_dekan_2' && userRole == 'wakil rektor 2') return { userId: userLogin.id_user, status: 'approve_wakil_rektor_2'};
-
-
-  //   if (status == 'approve_pengawas' && userRole == 'kepala prodi' && layer == 'kepala prodi') {
-  //     if (layer == 'kepala prodi') return { userId: userLogin.id_user, status: 'final_approve' }; // END CASE 1
-  //     if (layer == true) return { userId: userLogin.id_user, status: 'approve_kepala_prodi' }; // END CASE 1
-  //   }
-  //   if (status == 'approve_kepala_prodi' && userRole == 'wakil dekan 2') {
-  //     if (layer == true) return { userId: userLogin.id_user, status: 'approve_wakil_dekan_2' }; // END CASE 1
-  //     if (layer == false) return { userId: userLogin.id_user, status: 'final_approve' }; // END CASE 1
-  //   }
-  //   if (status == 'approve_wakil_dekan_2' && userRole == 'wakil rektor 2') return { userId: userLogin.id_user, status: 'final_approve' }; // END CASE 2
-  //   if (status == 'final_approve' && userRole == 'petugas') return { userId: userLogin.id_user, status: 'progress' }; // PETUGAS MENGERJAKAN LAPORAN/KERUSAKAN
-  //   if (status == 'progress' && userRole == 'petugas') return { userId: userLogin.id_user, status: 'check' }; // PETUGAS SELESAI MENGERJAKAN DAN MENGUBAH STATUS KE CHECK AGAR DILAKUKAN PENGECEKAN
-  //   if (status == 'check' && userRole == 'pengawas') return { userId: userLogin.id_user, status: 'done' };
-  //   return null
+  let status = laporan.status_laporan;
+  let userRole = userLogin.role;
+  if (status == 'submitted' && userRole == 'pengawas') return { userId: userLogin.id_user, status: 'approve_pengawas'};
   
+  //IF UNTUK PENGAWAS DI DULUANKAN
+  if (status == 'approve_kepala_prodi' && userRole == 'petugas' && layer == 1) return { userId: userLogin.id_user, status: 'progress'};
+  if (status == 'approve_wakil_dekan_2' && userRole == 'petugas' && layer == 2) return { userId: userLogin.id_user, status: 'progress'};
+  if (status == 'approve_wakil_rektor_2' && userRole == 'petugas' && layer == 3) return { userId: userLogin.id_user, status: 'progress'};
+  if (status == 'progress' && userRole == 'petugas') return { userId: userLogin.id_user, status: 'check'};
+  if (status == 'check' && userRole == 'pengawas') return { userId: userLogin.id_user, status: 'done'};
+  console.log(status, userRole, layer);
+  //IF UNTUK PENANGGUNG JAWAB
+  if (status == 'approve_pengawas' && userRole == 'kepala prodi') return { userId: userLogin.id_user, status: 'approve_kepala_prodi'};
+  if (status == 'approve_kepala_prodi' && userRole == 'wakil dekan 2') return { userId: userLogin.id_user, status: 'approve_wakil_dekan_2'};
+  if (status == 'approve_wakil_dekan_2' && userRole == 'wakil rektor 2') return { userId: userLogin.id_user, status: 'approve_wakil_rektor_2'};
 }
 
 function generateRejectedStatus(laporan, userLogin) {
@@ -111,11 +95,26 @@ async function getFile(next, path) {
   }
 }
 
+async function generateNotifNotes(status, userIdTo, from, role, laporan_id) {
+  let notes = null
+  if (status == 'approve') notes = `${from}(${role}) has approved a report!`;
+  if (status == 'reject') notes = `${from}(${role}) has rejected a report!`;
+  if (status == 'comment') notes = `${from} comment your report!`;
+  if (status == 'like') notes = `${from} liked your report!`;
+  if (status == 'dislike') notes = `${from} disliked your report!`;
+  let query = `INSERT INTO ${dbName}.tb_notification (id_user, notes, laporan_id)
+                VALUES (${userIdTo}, '${notes}', ${laporan_id});`
+  let result = await asynqQuery(query)
+  if (result) return true
+  else return false
+}
+
 module.exports = {
     getFile,
     uploadFile,
     asynqQuery,
     getUser,
     generateNewStatus,
-    generateRejectedStatus
+    generateRejectedStatus,
+    generateNotifNotes
 }
