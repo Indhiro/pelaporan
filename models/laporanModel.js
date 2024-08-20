@@ -93,7 +93,6 @@ class laporanModel {
             let userlogin = req.query.userId;
             let searchParam = req.query.search;
             let sortBy = req.query.sortBy;
-            let type = req.query.type;
             let user = await getUser(userlogin)
             let whereCondition = '';
             if (user) whereCondition = `where tl.status_laporan IN ('done')` // JIKE LEMPAR PARAM userId, pake filter, kalo ga ya ga

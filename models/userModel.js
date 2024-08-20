@@ -1,40 +1,43 @@
 const con = require('../config/config');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-let { asynqQuery,getUser,generateNewStatus, generateRejectedStatus, getFile } = require('../helpers/helpers');
+let { asynqQuery,getUser,getFile } = require('../helpers/helpers');
 let dbName = 'db_laporan'
 
 class userModel {
     static loginUser(req, res, next) {
         try {
             let { username, password } = req.body;
-            console.log("username password", username, password);
+            let isValidate = false;
             //VALIDASI
-            if (!username) return res.send('Username empty, please try again!');
-            if (!password) return res.send('Password empty, please try again!');
+            if (!username) return res.send({ msg: 'Username empty, please try again!' });
+            if (!password) return res.send({ msg: 'Password empty, please try again!' });
             //QUERY
-            let query = `SELECT *
-                    FROM ${'`db_laporan`'}.tb_user 
-                    WHERE username = '${username}'
-                    AND deleted_at IS NULL`;
+            let query = `SELECT * FROM ${'`db_laporan`'}.tb_user 
+                    WHERE username = '${username}' AND deleted_at IS NULL`;
             //EXECUTION QUERY
             con.query(query, async function (err, result, fields) {
                 if (err) throw err;
-                if (result == 0) return res.send('Account not found');
+                if (result == 0) return res.send({ msg: 'Account not found!' });
                 if (bcrypt.compareSync(req.body.password, result[0].password)) {
                     for (let index = 0; index < result.length; index++) {
                         const element = result[index];
+                        if (element.is_validate) isValidate = true;
                         if (element.image) element.image = await getFile(next, element.image)
                     }
+                    if (isValidate === false) return res.send({
+                        msg: 'The account has not been validated! Please contact Pengawas'
+                    })
                     res.send(result)
                 } else {
-                    res.send('Password wrong!')
+                    res.send({
+                        msg: 'Username or Password Incorrect!'
+                    })
                 }
             });
-        } catch (err){
-            res.status(400);
+        } catch (err) {
             console.log('func loginUser',err);
-            // res.send(500).send()  
+            res.status(500).send({ msg: err.message })
         }
     };
 
@@ -48,7 +51,8 @@ class userModel {
             }
             res.send(user);
         } else {
-            let query = `SELECT * FROM ${dbName}.tb_user`; // AND ts.role != 'petugas'
+            let query = `SELECT *, DATE_FORMAT(created_at, "%d-%m-%Y") as dateformated FROM ${dbName}.tb_user 
+            WHERE deleted_at is null ORDER BY nama ASC`; // AND ts.role != 'petugas'
             let result = await asynqQuery(query)
             for (let index = 0; index < result.length; index++) {
                 const element = result[index];
@@ -60,7 +64,7 @@ class userModel {
 
     static async registerUser(req, res, next) {
         try {
-            let { role, username, fullName, gender, no_unik, no_telp, image } = req.body; // no_unik dari mana? flow nya gimana?
+            let { role, username, fullName, gender, no_unik, no_telp } = req.body; // no_unik dari mana? flow nya gimana?
             let total_laporan = 0;
             let point_role = 0;
             let created_at = `CURRENT_TIMESTAMP`;
@@ -87,7 +91,7 @@ class userModel {
                 //QUERY2
                 let query2 = `INSERT INTO ${'`db_laporan`'}.tb_user SET
                     role = '${role}', point_role = ${point_role}, username = '${username}', nama = '${fullName}', gender = '${gender}', 
-                    no_unik = ${no_unik}, no_telp = '${no_telp}', image = '${image}', created_at = ${created_at}, password = '${password}', total_laporan = '${total_laporan}'`;
+                    no_unik = ${no_unik}, no_telp = '${no_telp}', created_at = ${created_at}, password = '${password}', total_laporan = '${total_laporan}'`;
                 con.query(query2, function (err2, result2, fields2) {
                     if (err2) throw err2;
                     res.send(result2);
@@ -159,21 +163,36 @@ class userModel {
     };
 
     static deleteUser(req, res, next) {
-        let id_user = req.body.id_user
-        let deleted_at = `CURRENT_TIMESTAMP`;
-
-        let query = `UPDATE ${'`db_laporan`'}.tb_user SET `;
-        query += ` deleted_at = ${deleted_at},`
-
-        query = query.slice(0, -1);
-        query += ` WHERE id_user = ${id_user}`
-
+        let id_user = req.query.id_user
+        let query = `UPDATE ${dbName}.tb_user SET deleted_at = CURRENT_TIMESTAMP WHERE id_user = ${id_user}`;
         con.query(query, function(err, result,  fields) {
             if (err) throw err;
             res.send(result);
         });
 
     };
+
+    static async activeValidateUser(req, res, next) {
+        let userId = req.query.userId;
+        let status = req.query.status;
+        let userlogin = req.query.userlogin;
+        let user = await getUser(userlogin)
+        userlogin = user[0];
+        if (userlogin.role != 'admin') return res.send({ msg: `Only admin have an access to this service!` })
+        try {
+            let query = `
+            UPDATE ${dbName}.tb_user
+            SET is_validate = ${status} 
+            WHERE id_user = ${userId};`;
+            let result = await asynqQuery(query)
+            res.send(result);
+        } catch (error) {
+            console.log('activeValidateUser', error);
+            res.send({
+                msg: error.message
+            });
+        }
+    }
 
 }
 

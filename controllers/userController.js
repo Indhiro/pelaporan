@@ -10,9 +10,8 @@ class userController {
     };
 
     static getAllUser(req, res, next) {
-        userModel.getAllUser(req, res, next);
+        userModel.getUser(req, res, next);
     };
-
 
     static registerUser(req, res, next) {
         userModel.registerUser(req, res, next);
@@ -28,6 +27,10 @@ class userController {
     
     static deleteUser(req, res, next) {
         userModel.deleteUser(req, res, next);
+    };
+
+    static activeValidateUser(req, res, next) {
+        userModel.activeValidateUser(req, res, next);
     };
     
 }
