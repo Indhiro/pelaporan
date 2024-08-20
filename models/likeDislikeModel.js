@@ -50,9 +50,11 @@ class likeDislikeModel {
     }
 
     static deleteLikeDislike(req, res, next) {
-        let id_like_dislike = req.body.id_like_dislike;
-        let query = `DELETE FROM ${dbName}.tb_like_dislike WHERE id_like_dislike = ` + id_like_dislike;
+        let id_user = req.body.id_user;
+        let id_laporan = req.body.id_laporan;
+        let query = `DELETE FROM ${dbName}.tb_like_dislike WHERE id_user = ${+id_user} AND id_laporan = ${+id_laporan}`;
         con.query(query, function (err, result, fields) {
+            console.log(query);
             if (err) throw err;
             res.send(result);
         });
