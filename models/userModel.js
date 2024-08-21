@@ -102,34 +102,47 @@ class userModel {
         }
     };
 
+    static async checkPassUser(req, res, next) {
+        let { id_user, password } = req.body;
+        let query = `SELECT password
+        FROM ${'`db_laporan`'}.tb_user
+        WHERE id_user = '${id_user}'`
+        con.query(query, function (err, result, fields) {
+            if (bcrypt.compareSync(password, result[0].password)) {
+                
+            }
+        })
+    }
+
     static async updatePassUser(req, res, next) {
-        let { username, password } = req.body;
+        let { id_user, password } = req.body;
         let new_pass = await bcrypt.hash(req.body.new_pass, 10);
         let updated_at = `CURRENT_TIMESTAMP`;
         //VALIDASI
-        if (!username) return res.send('Username empty, please try again!');
+        if (!id_user) return res.send('Id_user empty, please try again!');
         if (!password) return res.send('Password empty, please try again!');
         if (!new_pass) return res.send('New password empty, please try again!');
         //QUERY
         let query = `SELECT password
-                    FROM ${'`db_laporan`'}.tb_user
-                    WHERE username = '${username}'`
+        FROM ${'`db_laporan`'}.tb_user
+        WHERE id_user = '${id_user}'`
         con.query(query, function (err, result, fields) {
             if (bcrypt.compareSync(password, result[0].password)) {
                 let query2 = `UPDATE ${'`db_laporan`'}.tb_user
-                            SET password = '${new_pass}', updated_at = ${updated_at}
-                            WHERE username = '${username}'
-                            AND password = '${result[0].password}'`;
-                    //EXECUTION QUERY
-                    con.query(query2, function (err2, result2, fields2) {
-                        if (err2) throw err2;
+                SET password = '${new_pass}', updated_at = ${updated_at}
+                WHERE id_user = '${id_user}'
+                AND password = '${result[0].password}'`;
+                //EXECUTION QUERY
+                con.query(query2, function (err2, result2, fields2) {
+                    if (err2) throw err2;
                         //result.message[15] => if 0 account not found, if 1 account found
                         if (result2.message[15] == 0) return res.send('Account not found!')
                         if (result2.changedRows === 1) return res.send('Password Changed!')
                         res.send(result2)
                     })
             } else {
-                res.send('Password wrong!')
+                console.log('Password wrong!', result[0].password);
+                res.send(result[0].password)
             }
         })
     };
