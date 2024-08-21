@@ -1,7 +1,7 @@
 const con = require('../config/config');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-let { asynqQuery,getUser,getFile } = require('../helpers/helpers');
+let { asynqQuery,getUser,getFile,responseFormated } = require('../helpers/helpers');
 let dbName = 'db_laporan'
 
 class userModel {
@@ -74,14 +74,14 @@ class userModel {
             con.query(query, function (err, result, fields) {
                 if (err) throw err;
                 //VALIDASI
-                if (!username) return res.send('Username coloumn cant be empty!');
-                if (!fullName) return res.send('Nama coloumn cant be empty!');
-                if (!gender) return res.send('Gender coloumn cant be empty!');
-                if (!no_unik) return res.send('No_unik name coloumn cant be empty!');
-                if (!no_telp) return res.send('No_telp coloumn cant be empty!');
+                if (!username) return res.send(responseFormated(false, 400, 'Username coloumn cant be empty!', []));
+                if (!fullName) return res.send(responseFormated(false, 400, 'Nama coloumn cant be empty!', []));
+                if (!gender) return res.send(responseFormated(false, 400, 'Gender coloumn cant be empty!', []));
+                if (!no_unik) return res.send(responseFormated(false, 400, 'No_unik name coloumn cant be empty!', []));
+                if (!no_telp) return res.send(responseFormated(false, 400, 'No_telp coloumn cant be empty!', []));
                 for (let i = 0; i < result.length; i++) {
-                    if (username == result[i].username) return res.send('Username used!, please use another username!');
-                    if (no_unik == result[i].no_unik) return res.send('No_unik used!, please use another no_unik!');
+                    if (username == result[i].username) return res.send(responseFormated(false, 400, 'Username used!, please use another username!', []));
+                    if (no_unik == result[i].no_unik) return res.send(responseFormated(false, 400, 'No_unik used!, please use another no_unik!', []));
                 };
                 if (role == 'mahasiswa') point_role = 1;
                 if (role == 'dosen' || role == 'pengawas' || role == 'petugas') point_role = 2;
@@ -94,7 +94,7 @@ class userModel {
                     no_unik = ${no_unik}, no_telp = '${no_telp}', created_at = ${created_at}, password = '${password}', total_laporan = '${total_laporan}'`;
                 con.query(query2, function (err2, result2, fields2) {
                     if (err2) throw err2;
-                    res.send(result2);
+                    res.send(responseFormated(true, 200, '', result2));
                 });
             })
         } catch {
