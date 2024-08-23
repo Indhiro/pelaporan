@@ -25,8 +25,10 @@ class laporanModel {
                     or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
                 }
             }
-            if (type == 'status' && status != 'null') whereCondition += ` AND tl.status_laporan = '${status}' ` // SELECT FILTER STATUS
-
+            if (type == 'status' && status != 'null') {
+                if (whereCondition == '') whereCondition += ` WHERE tl.status_laporan = '${status}' ` // SELECT FILTER STATUS
+                else whereCondition += ` AND tl.status_laporan = '${status}' ` // SELECT FILTER STATUS
+            }
             let query = queryGetDataFormated(whereCondition, sortBy)
             let result = await asynqQuery(query)
             for (let index = 0; index < result.length; index++) {
@@ -70,8 +72,10 @@ class laporanModel {
                     or tl.text like '%${searchParam}%' or tu.nama like '%${searchParam}%')`
                 }
             }
-            if (type == 'status' && status != 'null') whereCondition += ` AND tl.status_laporan = '${status}' ` // SELECT FILTER STATUS
-
+            if (type == 'status' && status != 'null') {
+                if (whereCondition == '') whereCondition += ` WHERE tl.status_laporan = '${status}' ` // SELECT FILTER STATUS
+                else whereCondition += ` AND tl.status_laporan = '${status}' ` // SELECT FILTER STATUS
+            }
             let query = queryGetDataFormated(whereCondition, sortBy)
             let result = await asynqQuery(query)
             for (let index = 0; index < result.length; index++) {
@@ -270,20 +274,15 @@ class laporanModel {
     }
 
     static deleteLaporan(req, res, next) {
-        let id_laporan = req.body.id_laporan
-        let deleted_at = `CURRENT_TIMESTAMP`;
+        let id_laporan = req.query.id_laporan
 
-        let query = `UPDATE ${dbName}.tb_laporan SET `;
-        query += ` deleted_at = ${deleted_at},`
-
-        query = query.slice(0, -1);
-        query += ` WHERE id_laporan = ${id_laporan} AND deleted_at IS NULL`
+        let query = `UPDATE ${dbName}.tb_laporan SET deleted_at = CURRENT_TIMESTAMP 
+        WHERE id_laporan = ${id_laporan} AND deleted_at IS NULL;`;
 
         con.query(query, function(err, result,  fields) {
             if (err) throw err;
             res.send(result);
         });
-
     };
 
     static async approveLaporan(req, res, next) {
@@ -453,6 +452,8 @@ function queryGetDataFormated(whereCondition, sortBy) {
         if (arrSortBy[0] == 'date') orderBy = `created_at ${arrSortBy[1]}`
         if (arrSortBy[0] == 'point') orderBy = `total_point ${arrSortBy[1]}`
     }
+    if (whereCondition == '') whereCondition += ` WHERE tl.deleted_at is null `
+    else whereCondition += ` AND tl.deleted_at is null `
     let query = `SELECT tl.*, tu.nama, tu.role, tu.point_role, tuun.nama_penerima, tuun.role, tuun2.nama_petugas,
         ((SELECT IF(tlds.countLike, tlds.countLike, 0)) - (SELECT IF(tldis2.countDislike, tldis2.countDislike, 0))) as countLikeDislike,
         ((SELECT IF(tld3.point_like, tld3.point_like, 0)) - (SELECT IF(tld4.point_dislike, tld4.point_dislike, 0)) +

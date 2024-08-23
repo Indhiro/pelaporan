@@ -109,6 +109,10 @@ async function generateNotifNotes(status, userIdTo, from, role, laporan_id) {
   else return false
 }
 
+function responseFormated(flag, status, msg, data) {
+  return { flag, status, msg, data }
+}
+
 module.exports = {
     getFile,
     uploadFile,
@@ -116,5 +120,6 @@ module.exports = {
     getUser,
     generateNewStatus,
     generateRejectedStatus,
-    generateNotifNotes
+    generateNotifNotes,
+    responseFormated
 }

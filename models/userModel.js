@@ -1,7 +1,7 @@
 const con = require('../config/config');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-let { asynqQuery,getUser,getFile } = require('../helpers/helpers');
+let { asynqQuery,getUser,getFile,responseFormated } = require('../helpers/helpers');
 let dbName = 'db_laporan'
 
 class userModel {
@@ -74,18 +74,18 @@ class userModel {
             con.query(query, function (err, result, fields) {
                 if (err) throw err;
                 //VALIDASI
-                if (!fullName) return res.send({flag:false, msg:'Full Name coloumn can not be empty!'});
-                if (!no_unik) return res.send({flag:false, msg:'NIM/NIP/NUPTK name coloumn can not be empty!'});
-                if (!email) return res.send({flag:false, msg:'Email coloumn can not be empty!'});
-                if (!username) return res.send({flag:false, msg:'Username coloumn can not be empty!'});
-                if (!password) return res.send({flag:false, msg:'Password coloumn can not be empty!'});
-                if (!role) return res.send({flag:false, msg:'Role coloumn can not be empty!'});
-                if (!gender) return res.send({flag:false, msg:'Gender coloumn can not be empty!'});
-                if (!no_telp) return res.send({flag:false, msg:'Phone number coloumn can not be empty!'});
+                if (!fullName) return res.send(responseFormated(false, 400, 'Full Name coloumn can not be empty!', []));
+                if (!no_unik) return res.send(responseFormated(false, 400, 'NIM/NIP/NUPTK name coloumn can not be empty!', []));
+                if (!email) return res.send(responseFormated(false, 400, 'Email coloumn can not be empty!', []));
+                if (!username) return res.send(responseFormated(false, 400, 'Username coloumn can not be empty!', []));
+                if (!password) return res.send(responseFormated(false, 400, 'Password coloumn can not be empty!', []));
+                if (!role) return res.send(responseFormated(false, 400, 'Role coloumn can not be empty!', []));
+                if (!gender) return res.send(responseFormated(false, 400, 'Gender coloumn can not be empty!', []));
+                if (!no_telp) return res.send(responseFormated(false, 400, 'Phone number coloumn can not be empty!', []));
                 for (let i = 0; i < result.length; i++) {
-                    if (username == result[i].username) return res.send({flag:false, msg:'Username used!, please use another username!'});
-                    if (email == result[i].email) return res.send({flag:false, msg:'Email used!, please use another email!'});
-                    if (no_unik == result[i].no_unik) return res.send({flag:false, msg:'NIM/NIP/NUPTK!, please use another NIM/NIP/NUPTK!'});
+                    if (username == result[i].username) return res.send(responseFormated(false, 400, 'Username used!, please use another username!', []));
+                    if (email == result[i].email) return res.send(responseFormated(false, 400, 'Email used!, please use another email!', []));
+                    if (no_unik == result[i].no_unik) return res.send(responseFormated(false, 400, 'NIM/NIP/NUPTK!, please use another NIM/NIP/NUPTK!', []));
                 };
                 if (role == 'mahasiswa') point_role = 1;
                 if (role == 'dosen' || role == 'pengawas' || role == 'petugas') point_role = 2;
@@ -98,7 +98,7 @@ class userModel {
                     no_unik = ${no_unik}, no_telp = '${no_telp}', created_at = ${created_at}, password = '${password}', total_laporan = '${total_laporan}'`;
                 con.query(query2, function (err2, result2, fields2) {
                     if (err2) throw err2;
-                    res.send(result2);
+                    res.send(responseFormated(true, 200, '', result2));
                 });
             })
         } catch {
@@ -123,9 +123,9 @@ class userModel {
         let new_pass = await bcrypt.hash(req.body.new_pass, 10);
         let updated_at = `CURRENT_TIMESTAMP`;
         //VALIDASI
-        if (!id_user) return res.send({flag:false, msg:'Id_user empty, please try again!'});
-        if (!password) return res.send({flag:false, msg:'Password empty, please try again!'});
-        if (!new_pass) return res.send({flag:false, msg:'New password empty, please try again!'});
+        if (!id_user) return res.send(responseFormated(false, 400, 'Id_user empty, please try again!', []));
+        if (!password) return res.send(responseFormated(false, 400, 'Password empty, please try again!', []));
+        if (!new_pass) return res.send(responseFormated(false, 400, 'New password empty, please try again!', []));
         //QUERY
         let query = `SELECT password
         FROM ${'`db_laporan`'}.tb_user
@@ -142,13 +142,13 @@ class userModel {
                 con.query(query2, function (err2, result2, fields2) {
                     if (err2) throw err2;
                         //result.message[15] => if 0 account not found, if 1 account found
-                        if (result2.message[15] == 0) return res.send({flag:false, msg:'Account not found!'})
-                        if (result2.changedRows === 1) return res.send({flag:false, msg:'Password Changed Succesfully!'})
+                        if (result2.message[15] == 0) return res.send(responseFormated(false, 400, 'Account not found!', []))
+                        if (result2.changedRows === 1) return res.send(responseFormated(false, 400, 'Password Changed Succesfully!', []))
                         res.send({flag:true, data:result2, msg:"Password changed succesfully"})
                     })
             } else {
                 console.log('Password wrong!', result[0].password);
-                res.send({flag:false, msg:"Current password incorrect!"})
+                res.send(responseFormated(false, 400, "Current password incorrect!", []))
             }
         })
     };
