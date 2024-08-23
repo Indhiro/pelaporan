@@ -56,7 +56,7 @@ class userModel {
             let result = await asynqQuery(query)
             for (let index = 0; index < result.length; index++) {
                 const element = result[index];
-                if (element.image) element.image = await getFile(next, element.image)
+                if (element.image != "undefined" && element.image) element.image = await getFile(next, element.image)
             }
             res.send(result);
         }
@@ -64,7 +64,7 @@ class userModel {
 
     static async registerUser(req, res, next) {
         try {
-            let { role, username, fullName, gender, no_unik, no_telp } = req.body; // no_unik dari mana? flow nya gimana?
+            let { role, email, username, fullName, gender, no_unik, no_telp } = req.body; // no_unik dari mana? flow nya gimana?
             let total_laporan = 0;
             let point_role = 0;
             let created_at = `CURRENT_TIMESTAMP`;
@@ -74,14 +74,18 @@ class userModel {
             con.query(query, function (err, result, fields) {
                 if (err) throw err;
                 //VALIDASI
-                if (!username) return res.send('Username coloumn cant be empty!');
-                if (!fullName) return res.send('Nama coloumn cant be empty!');
-                if (!gender) return res.send('Gender coloumn cant be empty!');
-                if (!no_unik) return res.send('No_unik name coloumn cant be empty!');
-                if (!no_telp) return res.send('No_telp coloumn cant be empty!');
+                if (!fullName) return res.send({flag:false, msg:'Full Name coloumn can not be empty!'});
+                if (!no_unik) return res.send({flag:false, msg:'NIM/NIP/NUPTK name coloumn can not be empty!'});
+                if (!email) return res.send({flag:false, msg:'Email coloumn can not be empty!'});
+                if (!username) return res.send({flag:false, msg:'Username coloumn can not be empty!'});
+                if (!password) return res.send({flag:false, msg:'Password coloumn can not be empty!'});
+                if (!role) return res.send({flag:false, msg:'Role coloumn can not be empty!'});
+                if (!gender) return res.send({flag:false, msg:'Gender coloumn can not be empty!'});
+                if (!no_telp) return res.send({flag:false, msg:'Phone number coloumn can not be empty!'});
                 for (let i = 0; i < result.length; i++) {
-                    if (username == result[i].username) return res.send('Username used!, please use another username!');
-                    if (no_unik == result[i].no_unik) return res.send('No_unik used!, please use another no_unik!');
+                    if (username == result[i].username) return res.send({flag:false, msg:'Username used!, please use another username!'});
+                    if (email == result[i].email) return res.send({flag:false, msg:'Email used!, please use another email!'});
+                    if (no_unik == result[i].no_unik) return res.send({flag:false, msg:'NIM/NIP/NUPTK!, please use another NIM/NIP/NUPTK!'});
                 };
                 if (role == 'mahasiswa') point_role = 1;
                 if (role == 'dosen' || role == 'pengawas' || role == 'petugas') point_role = 2;
@@ -90,7 +94,7 @@ class userModel {
                 if (role == 'wakil rektor 2') point_role = 5;
                 //QUERY2
                 let query2 = `INSERT INTO ${'`db_laporan`'}.tb_user SET
-                    role = '${role}', point_role = ${point_role}, username = '${username}', nama = '${fullName}', gender = '${gender}', 
+                    role = '${role}', point_role = ${point_role}, username = '${username}', nama = '${fullName}', email = '${email}', gender = '${gender}', 
                     no_unik = ${no_unik}, no_telp = '${no_telp}', created_at = ${created_at}, password = '${password}', total_laporan = '${total_laporan}'`;
                 con.query(query2, function (err2, result2, fields2) {
                     if (err2) throw err2;
@@ -119,15 +123,17 @@ class userModel {
         let new_pass = await bcrypt.hash(req.body.new_pass, 10);
         let updated_at = `CURRENT_TIMESTAMP`;
         //VALIDASI
-        if (!id_user) return res.send('Id_user empty, please try again!');
-        if (!password) return res.send('Password empty, please try again!');
-        if (!new_pass) return res.send('New password empty, please try again!');
+        if (!id_user) return res.send({flag:false, msg:'Id_user empty, please try again!'});
+        if (!password) return res.send({flag:false, msg:'Password empty, please try again!'});
+        if (!new_pass) return res.send({flag:false, msg:'New password empty, please try again!'});
         //QUERY
         let query = `SELECT password
         FROM ${'`db_laporan`'}.tb_user
         WHERE id_user = '${id_user}'`
         con.query(query, function (err, result, fields) {
-            if (bcrypt.compareSync(password, result[0].password)) {
+            let compareResult = bcrypt.compareSync(password, result[0].password);
+            
+            if (compareResult) {
                 let query2 = `UPDATE ${'`db_laporan`'}.tb_user
                 SET password = '${new_pass}', updated_at = ${updated_at}
                 WHERE id_user = '${id_user}'
@@ -136,19 +142,19 @@ class userModel {
                 con.query(query2, function (err2, result2, fields2) {
                     if (err2) throw err2;
                         //result.message[15] => if 0 account not found, if 1 account found
-                        if (result2.message[15] == 0) return res.send('Account not found!')
-                        if (result2.changedRows === 1) return res.send('Password Changed!')
-                        res.send(result2)
+                        if (result2.message[15] == 0) return res.send({flag:false, msg:'Account not found!'})
+                        if (result2.changedRows === 1) return res.send({flag:false, msg:'Password Changed Succesfully!'})
+                        res.send({flag:true, data:result2, msg:"Password changed succesfully"})
                     })
             } else {
                 console.log('Password wrong!', result[0].password);
-                res.send(result[0].password)
+                res.send({flag:false, msg:"Current password incorrect!"})
             }
         })
     };
 
     static async updateUser(req, res, next) {
-        let { id_user, nama, gender, no_telp } = req.body;
+        let { id_user, nama, email, gender, no_telp } = req.body;
         let image = req.file.path;
         let convertedImage = ``
         let updated_at = `CURRENT_TIMESTAMP`;
@@ -161,6 +167,7 @@ class userModel {
         }
 
         if(nama) query += ` nama = '${nama}',`;
+        if(email) query += ` email = '${email}',`;
         if(gender) query += ` gender = '${gender}',`;
         if(no_telp) query += ` no_telp = '${no_telp}',`;
         if(image) query += ` image = '${convertedImage}',`;
@@ -191,7 +198,7 @@ class userModel {
         let userlogin = req.query.userlogin;
         let user = await getUser(userlogin)
         userlogin = user[0];
-        if (userlogin.role != 'admin') return res.send({ msg: `Only admin have an access to this service!` })
+        if (userlogin.role != 'admin' && userlogin.role != 'pengawas') return res.send({ msg: `Only admin have an access to this service!` })
         try {
             let query = `
             UPDATE ${dbName}.tb_user
