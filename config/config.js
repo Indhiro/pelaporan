@@ -3,7 +3,7 @@ var mysql = require('mysql');
 var con = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "asdasd", // asdasd , Indhiro123
+    password: "Indhiro123", // asdasd , Indhiro123
     // port: '8889'
 });
 
@@ -47,6 +47,7 @@ const createTable = {
         id_user int NOT NULL AUTO_INCREMENT,
         role enum('mahasiswa','dosen','pengawas','petugas','kepala prodi','wakil dekan 2','wakil rektor 2','admin'),
         point_role int,
+        email varchar(255) NOT NULL,
         username varchar(255) NOT NULL,
         nama varchar(255) NOT NULL,
         password varchar(255) NOT NULL,
