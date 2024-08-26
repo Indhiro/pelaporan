@@ -73,6 +73,11 @@ class userModel {
             let query = `SELECT * FROM ${'`db_laporan`'}.tb_user WHERE username = '${username}'`;
             con.query(query, function (err, result, fields) {
                 if (err) throw err;
+                //Validasi email
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    return res.send(responseFormated(false, 400, "Please enter a valid email address!", []));
+                }
                 //VALIDASI
                 if (!fullName) return res.send(responseFormated(false, 400, 'Full Name coloumn can not be empty!', []));
                 if (!no_unik) return res.send(responseFormated(false, 400, 'NIM/NIP/NUPTK name coloumn can not be empty!', []));
@@ -80,7 +85,9 @@ class userModel {
                 if (!username) return res.send(responseFormated(false, 400, 'Username coloumn can not be empty!', []));
                 if (!password) return res.send(responseFormated(false, 400, 'Password coloumn can not be empty!', []));
                 if (!role) return res.send(responseFormated(false, 400, 'Role coloumn can not be empty!', []));
+                if (role == 'Select Role') return res.send(responseFormated(false, 400, 'Role coloumn can not be empty!', []));
                 if (!gender) return res.send(responseFormated(false, 400, 'Gender coloumn can not be empty!', []));
+                if (gender  == 'Select Gender') return res.send(responseFormated(false, 400, 'Gender coloumn can not be empty!', []));
                 if (!no_telp) return res.send(responseFormated(false, 400, 'Phone number coloumn can not be empty!', []));
                 for (let i = 0; i < result.length; i++) {
                     if (username == result[i].username) return res.send(responseFormated(false, 400, 'Username used!, please use another username!', []));
@@ -105,18 +112,6 @@ class userModel {
             res.status(500).send()
         }
     };
-
-    static async checkPassUser(req, res, next) {
-        let { id_user, password } = req.body;
-        let query = `SELECT password
-        FROM ${'`db_laporan`'}.tb_user
-        WHERE id_user = '${id_user}'`
-        con.query(query, function (err, result, fields) {
-            if (bcrypt.compareSync(password, result[0].password)) {
-                
-            }
-        })
-    }
 
     static async updatePassUser(req, res, next) {
         let { id_user, password } = req.body;
@@ -155,10 +150,17 @@ class userModel {
 
     static async updateUser(req, res, next) {
         let { id_user, nama, email, gender, no_telp } = req.body;
+        console.log("lol",req.file.path);
         let image = req.file.path;
         let convertedImage = ``
         let updated_at = `CURRENT_TIMESTAMP`;
         let query = `UPDATE ${'`db_laporan`'}.tb_user SET `;
+
+        //Validasi email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.send(responseFormated(false, 400, "Please enter a valid email address!", []));
+        }
 
         for (let index = 0; index < image.length; index++) {
             const char = image[index];
