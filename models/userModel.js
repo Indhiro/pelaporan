@@ -149,15 +149,17 @@ class userModel {
 
     static async updateUser(req, res, next) {
         let { id_user, nama, gender, no_telp } = req.body;
-        let image = req.file.path;
+        let image = req.file ? req.file.path : null;
         let convertedImage = ``
         let updated_at = `CURRENT_TIMESTAMP`;
         let query = `UPDATE ${'`db_laporan`'}.tb_user SET `;
 
-        for (let index = 0; index < image.length; index++) {
-            const char = image[index];
-            if (char == `\\`) convertedImage += `\\\\\\` // MYSQL TIDAK MEMBACA \ cm 1
-            else convertedImage += char
+        if (image) {
+            for (let index = 0; index < image.length; index++) {
+                const char = image[index];
+                if (char == `\\`) convertedImage += `\\\\\\` // MYSQL TIDAK MEMBACA \ cm 1
+                else convertedImage += char
+            }
         }
 
         if(nama) query += ` nama = '${nama}',`;
