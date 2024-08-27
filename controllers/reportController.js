@@ -5,6 +5,10 @@ class reportController {
         reportModel.getReport(req, res, next);
     };
 
+    static getLaporanReport(req, res, next) {
+        reportModel.getLaporanReport(req, res, next);
+    };
+
     static uploadReport(req, res, next) {
         reportModel.uploadReport(req, res, next);
     };

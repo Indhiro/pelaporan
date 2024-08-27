@@ -1,4 +1,4 @@
-let dbName = 'db_laporan';
+const { DATABASE } = require('../config/db');
 let con = require('../config/config');
 let multer = require('multer');
 let fs = require('fs-extra');
@@ -14,7 +14,7 @@ function asynqQuery(query, params) {
 
 async function getUser(userId) {
     try {
-        let user = await asynqQuery(`select * from ${dbName}.tb_user where id_user = ${userId}`);
+        let user = await asynqQuery(`select * from ${DATABASE}.tb_user where id_user = ${userId}`);
         return user
     } catch (error) {
         console.log(error);
@@ -102,7 +102,7 @@ async function generateNotifNotes(status, userIdTo, from, role, laporan_id) {
   if (status == 'comment') notes = `${from} comment your report!`;
   if (status == 'like') notes = `${from} liked your report!`;
   if (status == 'dislike') notes = `${from} disliked your report!`;
-  let query = `INSERT INTO ${dbName}.tb_notification (id_user, notes, laporan_id)
+  let query = `INSERT INTO ${DATABASE}.tb_notification (id_user, notes, laporan_id)
                 VALUES (${userIdTo}, '${notes}', ${laporan_id});`
   let result = await asynqQuery(query)
   if (result) return true

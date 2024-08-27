@@ -2,7 +2,7 @@ const con = require('../config/config');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 let { asynqQuery,getUser,getFile,responseFormated } = require('../helpers/helpers');
-let dbName = 'db_laporan'
+const { DATABASE } = require('../config/db');
 
 class userModel {
     static loginUser(req, res, next) {
@@ -13,7 +13,7 @@ class userModel {
             if (!username) return res.send({ msg: 'Username empty, please try again!' });
             if (!password) return res.send({ msg: 'Password empty, please try again!' });
             //QUERY
-            let query = `SELECT * FROM ${'`db_laporan`'}.tb_user 
+            let query = `SELECT * FROM ${DATABASE}.tb_user 
                     WHERE username = '${username}' AND deleted_at IS NULL`;
             //EXECUTION QUERY
             con.query(query, async function (err, result, fields) {
@@ -51,7 +51,7 @@ class userModel {
             }
             res.send(user);
         } else {
-            let query = `SELECT *, DATE_FORMAT(created_at, "%d-%m-%Y") as dateformated FROM ${dbName}.tb_user 
+            let query = `SELECT *, DATE_FORMAT(created_at, "%d-%m-%Y") as dateformated FROM ${DATABASE}.tb_user 
             WHERE deleted_at is null ORDER BY nama ASC`; // AND ts.role != 'petugas'
             let result = await asynqQuery(query)
             for (let index = 0; index < result.length; index++) {
@@ -70,7 +70,7 @@ class userModel {
             let created_at = `CURRENT_TIMESTAMP`;
             let password = await bcrypt.hash(req.body.password, 10);
             //QUERY1
-            let query = `SELECT * FROM ${'`db_laporan`'}.tb_user WHERE username = '${username}'`;
+            let query = `SELECT * FROM ${DATABASE}.tb_user WHERE username = '${username}'`;
             con.query(query, function (err, result, fields) {
                 if (err) throw err;
                 //Validasi email
@@ -100,7 +100,7 @@ class userModel {
                 if (role == 'wakil dekan 2') point_role = 4;
                 if (role == 'wakil rektor 2') point_role = 5;
                 //QUERY2
-                let query2 = `INSERT INTO ${'`db_laporan`'}.tb_user SET
+                let query2 = `INSERT INTO ${DATABASE}.tb_user SET
                     role = '${role}', point_role = ${point_role}, username = '${username}', nama = '${fullName}', email = '${email}', gender = '${gender}', 
                     no_unik = ${no_unik}, no_telp = '${no_telp}', created_at = ${created_at}, password = '${password}', total_laporan = '${total_laporan}'`;
                 con.query(query2, function (err2, result2, fields2) {
@@ -116,21 +116,20 @@ class userModel {
     static async updatePassUser(req, res, next) {
         let { id_user, password } = req.body;
         let new_pass = await bcrypt.hash(req.body.new_pass, 10);
-        let updated_at = `CURRENT_TIMESTAMP`;
         //VALIDASI
         if (!id_user) return res.send(responseFormated(false, 400, 'Id_user empty, please try again!', []));
         if (!password) return res.send(responseFormated(false, 400, 'Password empty, please try again!', []));
         if (!new_pass) return res.send(responseFormated(false, 400, 'New password empty, please try again!', []));
         //QUERY
         let query = `SELECT password
-        FROM ${'`db_laporan`'}.tb_user
+        FROM ${DATABASE}.tb_user
         WHERE id_user = '${id_user}'`
         con.query(query, function (err, result, fields) {
             let compareResult = bcrypt.compareSync(password, result[0].password);
             
             if (compareResult) {
-                let query2 = `UPDATE ${'`db_laporan`'}.tb_user
-                SET password = '${new_pass}', updated_at = ${updated_at}
+                let query2 = `UPDATE ${DATABASE}.tb_user
+                SET password = '${new_pass}', updated_at = CURRENT_TIMESTAMP 
                 WHERE id_user = '${id_user}'
                 AND password = '${result[0].password}'`;
                 //EXECUTION QUERY
@@ -149,15 +148,15 @@ class userModel {
     };
 
     static async updateUser(req, res, next) {
-        let { id_user, nama, email, gender, no_telp } = req.body;
+        let { id_user, nama, email, gender, no_telp, new_pass } = req.body;
         let image = req.file ? req.file.path : null;
-        let convertedImage = ``
-        let updated_at = `CURRENT_TIMESTAMP`;
-        let query = `UPDATE ${'`db_laporan`'}.tb_user SET `;
-
+        let convertedImage = ``;
+        let query = `UPDATE ${DATABASE}.tb_user SET `;
+        let hashedPassword = null;
+        hashedPassword = await bcrypt.hash(new_pass, 10)
         //Validasi email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
+        if (email && !emailRegex.test(email)) {
             return res.send(responseFormated(false, 400, "Please enter a valid email address!", []));
         }
 
@@ -168,13 +167,13 @@ class userModel {
                 else convertedImage += char
             }
         }
-
+        if(new_pass) query += ` password = '${hashedPassword}',`;
         if(nama) query += ` nama = '${nama}',`;
         if(email) query += ` email = '${email}',`;
         if(gender) query += ` gender = '${gender}',`;
         if(no_telp) query += ` no_telp = '${no_telp}',`;
         if(image) query += ` image = '${convertedImage}',`;
-        query += ` updated_at = ${updated_at},`
+        query += ` updated_at = CURRENT_TIMESTAMP,`
         query = query.slice(0, -1);
         query += ` WHERE id_user = ${id_user}`
         
@@ -187,7 +186,7 @@ class userModel {
 
     static deleteUser(req, res, next) {
         let id_user = req.query.id_user
-        let query = `UPDATE ${dbName}.tb_user SET deleted_at = CURRENT_TIMESTAMP WHERE id_user = ${id_user}`;
+        let query = `UPDATE ${DATABASE}.tb_user SET deleted_at = CURRENT_TIMESTAMP WHERE id_user = ${id_user}`;
         con.query(query, function(err, result,  fields) {
             if (err) throw err;
             res.send(result);
@@ -204,7 +203,7 @@ class userModel {
         if (userlogin.role != 'admin' && userlogin.role != 'pengawas') return res.send({ msg: `Only admin have an access to this service!` })
         try {
             let query = `
-            UPDATE ${dbName}.tb_user
+            UPDATE ${DATABASE}.tb_user
             SET is_validate = ${status} 
             WHERE id_user = ${userId};`;
             let result = await asynqQuery(query)

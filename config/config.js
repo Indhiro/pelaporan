@@ -1,16 +1,18 @@
 var mysql = require('mysql');
+const mybd = require('./db');
 
 var con = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "Indhiro123", // asdasd , Indhiro123
-    // port: '8889'
-});
+    database: mybd.DATABASE,
+    host: mybd.HOST,
+    user: mybd.USER,
+    password: mybd.PASSWORD,
+    port: mybd.PORT
+})
 
 con.connect(function (err) {
     if (err) throw err;
     //Query create database dan table if not exists
-    let queryDb = `CREATE DATABASE IF NOT EXISTS db_laporan`
+    let queryDb = `CREATE DATABASE IF NOT EXISTS ${mybd.DATABASE}`
     con.query(queryDb, function(err, result, fields) {
         if (err) throw err;
     });
@@ -43,7 +45,7 @@ con.connect(function (err) {
 
 //Query create table
 const createTable = {
-    queryTbUser: `CREATE TABLE IF NOT EXISTS ${'`db_laporan`'}.tb_user (
+    queryTbUser: `CREATE TABLE IF NOT EXISTS ${mybd.DATABASE}.tb_user (
         id_user int NOT NULL AUTO_INCREMENT,
         role enum('mahasiswa','dosen','pengawas','petugas','kepala prodi','wakil dekan 2','wakil rektor 2','admin'),
         point_role int,
@@ -62,7 +64,7 @@ const createTable = {
         deleted_at TIMESTAMP,
         PRIMARY KEY (id_user)
     )`,
-    queryTbLaporan: `CREATE TABLE IF NOT EXISTS ${'`db_laporan`'}.tb_laporan (
+    queryTbLaporan: `CREATE TABLE IF NOT EXISTS ${mybd.DATABASE}.tb_laporan (
         id_laporan int NOT NULL AUTO_INCREMENT,
         id_user_pelapor int NOT NULL,
         id_user_penerima int,
@@ -90,7 +92,7 @@ const createTable = {
         FOREIGN KEY (id_wakil_rektor_2) REFERENCES tb_user(id_user),
         FOREIGN KEY (id_petugas) REFERENCES tb_user(id_petugas)
     )`,
-    queryTbChat: `CREATE TABLE IF NOT EXISTS ${'`db_laporan`'}.tb_chat (
+    queryTbChat: `CREATE TABLE IF NOT EXISTS ${mybd.DATABASE}.tb_chat (
         id_chat int NOT NULL AUTO_INCREMENT,
         id_user_pengguna int NOT NULL,
         id_user_petugas int NOT NULL,
@@ -103,7 +105,7 @@ const createTable = {
         FOREIGN KEY (id_user_petugas) REFERENCES tb_user(id_user),
         FOREIGN KEY (id_laporan) REFERENCES tb_laporan(id_laporan)
     )`,
-    queryTbChatSender: `CREATE TABLE IF NOT EXISTS ${'`db_laporan`'}.tb_chat_sender (
+    queryTbChatSender: `CREATE TABLE IF NOT EXISTS ${mybd.DATABASE}.tb_chat_sender (
         id_chat_sender int NOT NULL AUTO_INCREMENT,
         id_chat int NOT NULL,
         id_user_sender int NOT NULL,
@@ -115,7 +117,7 @@ const createTable = {
         FOREIGN KEY (id_chat) REFERENCES tb_chat(id_chat),
         FOREIGN KEY (id_user_sender) REFERENCES tb_user(id_user)
     )`,
-    queryTbLikeDislike: `CREATE TABLE IF NOT EXISTS ${'`db_laporan`'}.tb_like_dislike (
+    queryTbLikeDislike: `CREATE TABLE IF NOT EXISTS ${mybd.DATABASE}.tb_like_dislike (
         id_like_dislike int NOT NULL AUTO_INCREMENT,
         id_user int NOT NULL,
         id_laporan int NOT NULL,
@@ -128,7 +130,7 @@ const createTable = {
         FOREIGN KEY (id_user) REFERENCES tb_user(id_user),
         FOREIGN KEY (id_laporan) REFERENCES tb_laporan(id_laporan)
     )`,
-    queryTbComment: `CREATE TABLE IF NOT EXISTS ${'`db_laporan`'}.tb_comment (
+    queryTbComment: `CREATE TABLE IF NOT EXISTS ${mybd.DATABASE}.tb_comment (
         id_comment int NOT NULL AUTO_INCREMENT,
         id_user int NOT NULL,
         id_laporan int NOT NULL,
@@ -141,7 +143,7 @@ const createTable = {
         FOREIGN KEY (id_user) REFERENCES tb_user(id_user),
         FOREIGN KEY (id_laporan) REFERENCES tb_laporan(id_laporan)
     )`,
-    queryTbReport: `CREATE TABLE IF NOT EXISTS ${'`db_laporan`'}.tb_report (
+    queryTbReport: `CREATE TABLE IF NOT EXISTS ${mybd.DATABASE}.tb_report (
         id_report int NOT NULL AUTO_INCREMENT,
         id_user int NOT NULL,
         id_laporan int NOT NULL,
@@ -154,7 +156,7 @@ const createTable = {
         FOREIGN KEY (id_user) REFERENCES tb_user(id_user),
         FOREIGN KEY (id_laporan) REFERENCES tb_laporan(id_laporan)
     )`,
-    queryTbApprove: `CREATE TABLE IF NOT EXISTS ${'`db_laporan`'}.tb_approve (
+    queryTbApprove: `CREATE TABLE IF NOT EXISTS ${mybd.DATABASE}.tb_approve (
         id_approver int NOT NULL AUTO_INCREMENT,
         id_user int NOT NULL,
         id_laporan int NOT NULL,
@@ -168,7 +170,7 @@ const createTable = {
         FOREIGN KEY (id_user) REFERENCES tb_user(id_user),
         FOREIGN KEY (id_laporan) REFERENCES tb_laporan(id_laporan)
     )`,
-    queryTbNotification: `CREATE TABLE IF NOT EXISTS ${'`db_laporan`'}.tb_notification (
+    queryTbNotification: `CREATE TABLE IF NOT EXISTS ${mybd.DATABASE}.tb_notification (
         id int NOT NULL AUTO_INCREMENT,
         laporan_id int NOT NULL,
         id_user int NOT NULL,
