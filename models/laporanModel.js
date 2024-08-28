@@ -1,16 +1,13 @@
 const con = require('../config/config');
 const { DATABASE } = require('../config/db');
-let { asynqQuery,getUser,generateNewStatus, generateRejectedStatus,getFile,generateNotifNotes } = require('../helpers/helpers');
+let { asynqQuery,getUser,generateNewStatus, generateRejectedStatus,getFile,generateNotifNotes,responseFormated } = require('../helpers/helpers');
 
 class laporanModel {
     static async getLaporanDashboard(req, res, next) {
-        // KALAU BISA AMBIL PER 10 - 20 data saja per load (buat pagination)
         try {
+            let { sortBy,type,status,page,pageSize } = req.query;
             let userlogin = req.query.userId;
             let searchParam = req.query.search;
-            let sortBy = req.query.sortBy;
-            let type = req.query.type;
-            let status = req.query.status;
             let user = await getUser(userlogin)
             let role = user[0].role;
             let whereCondition = '';
@@ -29,27 +26,26 @@ class laporanModel {
                 if (whereCondition == '') whereCondition += ` WHERE tl.status_laporan = '${status}' ` // SELECT FILTER STATUS
                 else whereCondition += ` AND tl.status_laporan = '${status}' ` // SELECT FILTER STATUS
             }
-            let query = queryGetDataFormated(whereCondition, sortBy)
+            let query = queryGetDataFormated(whereCondition, sortBy, page, pageSize)
+            let countLp = await countGetDataFormated(whereCondition)
+            
             let result = await asynqQuery(query)
             for (let index = 0; index < result.length; index++) {
                 const element = result[index];
                 if (element.image) element.image = await getFile(next, element.image)
-                // element.image = await getFile(next, element.image) // AGAK LAMA KALO BYK DATA (MENDING PAGINATION)
             }
-            res.send(result);
+            res.send(responseFormated(true, 200, 'Success', { result, totalLp: countLp[0].countLp }));
         } catch (error) {
             console.log('func getLaporanDashboard',error);
-            res.send(error.message)
+            res.send(responseFormated(false, 400, error.message, {}))
         }
     }
 
     static async getLaporanValidation(req, res, next) {
         try {
+            let { sortBy,type,status,page,pageSize } = req.query;
             let userlogin = req.query.userId;
             let searchParam = req.query.search;
-            let sortBy = req.query.sortBy;
-            let type = req.query.type;
-            let status = req.query.status;
             let user = await getUser(userlogin)
             let role = user[0].role;
             let whereCondition = '';
@@ -76,27 +72,28 @@ class laporanModel {
                 if (whereCondition == '') whereCondition += ` WHERE tl.status_laporan = '${status}' ` // SELECT FILTER STATUS
                 else whereCondition += ` AND tl.status_laporan = '${status}' ` // SELECT FILTER STATUS
             }
-            let query = queryGetDataFormated(whereCondition, sortBy)
+            let query = queryGetDataFormated(whereCondition, sortBy, page, pageSize)
+            let countLp = await countGetDataFormated(whereCondition)
+
             let result = await asynqQuery(query)
             for (let index = 0; index < result.length; index++) {
                 const element = result[index];
                 if (element.image) element.image = await getFile(next, element.image)
-                // element.image = await getFile(next, element.image) // AGAK LAMA KALO BYK DATA (MENDING PAGINATION)
             }
 
-            res.send(result);
+            res.send(responseFormated(true, 200, 'Success', { result, totalLp: countLp[0].countLp }));
         } catch (error) {
             console.log('func getLaporanDashboard',error);
-            res.send(error.message)
+            res.send(responseFormated(false, 400, error.message, {}))
         }
     }
 
     static async getLaporanHistory(req, res, next) {
         // KALAU BISA AMBIL PER 10 - 20 data saja per load (buat pagination)
         try {
+            let { sortBy,type,status,page,pageSize } = req.query;
             let userlogin = req.query.userId;
             let searchParam = req.query.search;
-            let sortBy = req.query.sortBy;
             let user = await getUser(userlogin)
             let whereCondition = '';
             if (user) whereCondition = `where tl.status_laporan IN ('done')` // JIKE LEMPAR PARAM userId, pake filter, kalo ga ya ga
@@ -110,25 +107,26 @@ class laporanModel {
                 }
             }
 
-            let query = queryGetDataFormated(whereCondition, sortBy)
+            let query = queryGetDataFormated(whereCondition, sortBy, page, pageSize)
+            let countLp = await countGetDataFormated(whereCondition)
+
             let result = await asynqQuery(query)
             for (let index = 0; index < result.length; index++) {
                 const element = result[index];
                 if (element.image) element.image = await getFile(next, element.image)
-                // element.image = await getFile(next, element.image) // AGAK LAMA KALO BYK DATA (MENDING PAGINATION)
             }
-            res.send(result);
+            res.send(responseFormated(true, 200, 'Success', { result, totalLp: countLp[0].countLp }));
         } catch (error) {
             console.log('func getLaporanHistory',error);
-            res.send(error.message)
+            res.send(responseFormated(false, 400, error.message, {}))
         }
-     }
+    }
 
     static async getLaporanRejected(req, res, next) {
         try {
+            let { sortBy,type,status,page,pageSize } = req.query;
             let userlogin = req.query.userId;
             let searchParam = req.query.search;
-            let sortBy = req.query.sortBy;
             let user = await getUser(userlogin)
             let whereCondition = '';
             if (user) whereCondition = `where tl.status_laporan IN ('rejected')` // JIKE LEMPAR PARAM userId, pake filter, kalo ga ya ga
@@ -142,16 +140,17 @@ class laporanModel {
                 }
             }
 
-            let query = queryGetDataFormated(whereCondition, sortBy)
+            let query = queryGetDataFormated(whereCondition, sortBy, page, pageSize)
+            let countLp = await countGetDataFormated(whereCondition)
             let result = await asynqQuery(query)
             for (let index = 0; index < result.length; index++) {
                 const element = result[index];
                 if (element.image) element.image = await getFile(next, element.image)
             }
-            res.send(result);
+            res.send(responseFormated(true, 200, 'Success', { result, totalLp: countLp[0].countLp }));
         } catch (error) {
             console.log('func getLaporanRejected',error);
-            res.send(error.message)
+            res.send(responseFormated(false, 400, error.message, {}))
         }
     }
 
@@ -224,7 +223,7 @@ class laporanModel {
             if (err) throw err;
             res.send(result);
         });
-    };
+    }
 
     static async approveLaporan(req, res, next) {
         try {
@@ -327,6 +326,67 @@ class laporanModel {
             res.send(error.message)
         }
     }
+
+    static async recapitulationReprot(req, res, next) {
+        try {
+            let queryRecap = `SELECT 
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 1) as JAN,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 2) as FEB,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 3) as MAR,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 4) as APR,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 5) as MAY,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 6) as JUN,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 7) as JUL,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 8) as AUG,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 9) as SEP,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 10) as OKT,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 11) as NOV,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 12) as DES
+            FROM ${DATABASE}.tb_laporan tl LIMIT 1`
+
+            let queryRecapDone = `SELECT 
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 1 AND tl.status_laporan = 'done') as JAN,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 2 AND tl.status_laporan = 'done') as FEB,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 3 AND tl.status_laporan = 'done') as MAR,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 4 AND tl.status_laporan = 'done') as APR,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 5 AND tl.status_laporan = 'done') as MAY,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 6 AND tl.status_laporan = 'done') as JUN,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 7 AND tl.status_laporan = 'done') as JUL,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 8 AND tl.status_laporan = 'done') as AUG,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 9 AND tl.status_laporan = 'done') as SEP,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 10 AND tl.status_laporan = 'done') as OKT,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 11 AND tl.status_laporan = 'done') as NOV,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 12 AND tl.status_laporan = 'done') as DES
+            FROM ${DATABASE}.tb_laporan tl LIMIT 1`
+
+            let queryRecapReject = `SELECT 
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 1 AND tl.status_laporan = 'rejected') as JAN,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 2 AND tl.status_laporan = 'rejected') as FEB,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 3 AND tl.status_laporan = 'rejected') as MAR,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 4 AND tl.status_laporan = 'rejected') as APR,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 5 AND tl.status_laporan = 'rejected') as MAY,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 6 AND tl.status_laporan = 'rejected') as JUN,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 7 AND tl.status_laporan = 'rejected') as JUL,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 8 AND tl.status_laporan = 'rejected') as AUG,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 9 AND tl.status_laporan = 'rejected') as SEP,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 10 AND tl.status_laporan = 'rejected') as OKT,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 11 AND tl.status_laporan = 'rejected') as NOV,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 12 AND tl.status_laporan = 'rejected') as DES
+            FROM ${DATABASE}.tb_laporan tl LIMIT 1`
+
+            let result = await asynqQuery(queryRecap);
+            let resultDone = await asynqQuery(queryRecapDone);
+            let resultReject = await asynqQuery(queryRecapReject);
+            res.send(responseFormated(true, 200, 'Success', {
+                recap: result,
+                recapDone: resultDone,
+                recapReject: resultReject
+            }))
+        } catch (error) {
+            console.log('recapitulationReprot', error);
+            res.send(responseFormated(true, 400, error.message, []));
+        }
+    }
     
 }
 
@@ -386,8 +446,10 @@ async function getLatestPengawas() { // AUTOMATION
     }
 }
 
-function queryGetDataFormated(whereCondition, sortBy) {
+function queryGetDataFormated(whereCondition, sortBy, page, pageSize) {
     let orderBy = 'total_point desc';
+    let page_size = pageSize ? pageSize : 3; // BRAPA SEKALI AMBIL
+    let page_number = (((page && page > 0) ? page : 1) - 1) * page_size; // PAGE KEBERAPA || (page_number - 1) * page_size
     if (sortBy) {
         let arrSortBy = sortBy.split(',');
         if (arrSortBy[0] == 'date') orderBy = `created_at ${arrSortBy[1]}`
@@ -433,9 +495,15 @@ function queryGetDataFormated(whereCondition, sortBy) {
             from ${DATABASE}.tb_report tr
             group by tr.id_laporan) tr2
             on tl.id_laporan = tr2.id_laporan
-        ${whereCondition} order by ${orderBy};
+        ${whereCondition} order by ${orderBy} LIMIT ${page_size} OFFSET ${page_number};
     `
     return query
+}
+
+async function countGetDataFormated(whereCondition) {
+    let query = `SELECT COUNT(tl.id_laporan) as countLp FROM ${DATABASE}.tb_laporan tl ${whereCondition}`;
+    let result = await asynqQuery(query)
+    return result;
 }
 
 module.exports = laporanModel;
