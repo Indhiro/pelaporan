@@ -43,6 +43,11 @@ class laporanController {
     static getLaporanHistory(req, res, next) {
         laporanModel.getLaporanHistory(req, res, next);
     };
+
+    
+    static recapitulationReprot(req, res, next) {
+        laporanModel.recapitulationReprot(req, res, next);
+    };
     
 }
 

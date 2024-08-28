@@ -19,12 +19,12 @@ class reportModel {
             let query = `SELECT tl.* , tr.*, tu.nama, tu.role, tu.point_role,tuun.nama_penerima, tuun.role, tur.nama as user_report, 
             DATE_FORMAT(tr.created_at, "%d-%m-%Y") as dateformated 
             FROM ${DATABASE}.tb_laporan tl
-            INNER JOIN ${DATABASE}.tb_report tr ON tl.id_laporan = tr.id_laporan
-            left join ${DATABASE}.tb_user tu
-            on tl.id_user_pelapor = tu.id_user
-            left join (select tuu.nama as nama_penerima, tuu.id_user, tuu.role
-            from ${DATABASE}.tb_user tuu) tuun on tl.id_user_penerima = tuun.id_user
-            left join (select tuur.nama , tuur.id_user
+                INNER JOIN ${DATABASE}.tb_report tr ON tl.id_laporan = tr.id_laporan
+                left join ${DATABASE}.tb_user tu
+                on tl.id_user_pelapor = tu.id_user
+                left join (select tuu.nama as nama_penerima, tuu.id_user, tuu.role
+                from ${DATABASE}.tb_user tuu) tuun on tl.id_user_penerima = tuun.id_user
+                left join (select tuur.nama , tuur.id_user
             from ${DATABASE}.tb_user tuur) tur on tr.id_user = tur.id_user`
             let lap = await asynqQuery(query);
 
