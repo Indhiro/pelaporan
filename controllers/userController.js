@@ -32,6 +32,10 @@ class userController {
     static activeValidateUser(req, res, next) {
         userModel.activeValidateUser(req, res, next);
     };
+
+    static forgetPassword(req, res, next) {
+        userModel.forgetPassword(req, res, next);
+    };
     
 }
 
