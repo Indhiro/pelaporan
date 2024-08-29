@@ -12,5 +12,6 @@ userRouter.put('/update-user', uploadFile().single("file"), userController.updat
 userRouter.put('/delete-user', userController.deleteUser);
 userRouter.get('/validate-user', userController.activeValidateUser);
 userRouter.post('/forget-password', userController.forgetPassword);
+userRouter.post('/reset-password', userController.resetPassword);
 
 module.exports = userRouter;

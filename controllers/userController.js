@@ -37,6 +37,10 @@ class userController {
         userModel.forgetPassword(req, res, next);
     };
     
+    static resetPassword(req, res, next) {
+        userModel.resetPassword(req, res, next);
+    };
+    
 }
 
 module.exports = userController;

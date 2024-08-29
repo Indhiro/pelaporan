@@ -2,6 +2,7 @@ const { DATABASE } = require('../config/db');
 let con = require('../config/config');
 let multer = require('multer');
 let fs = require('fs-extra');
+var nodemailer = require('nodemailer');
 
 function asynqQuery(query, params) {
     return new Promise((resolve, reject) =>{
@@ -113,13 +114,44 @@ function responseFormated(flag, status, msg, data) {
   return { flag, status, msg, data }
 }
 
+function sendEmailNodemailer(subject, message, toEmail) {
+  var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    secure: false,
+    requireTLS: true,
+    auth: {
+      user: 'indhiropro@gmail.com',
+      pass: 'xdfi mggw fsff ertn'
+    }
+  });
+  
+  var mailOptions = {
+    from: 'indhiropro@gmail.com',
+    to: toEmail,
+    subject: subject,
+    text: message
+  };
+  
+  transporter.sendMail(mailOptions, function(error, info){
+    if (error) {
+      console.log(error);
+      return false
+    } else {
+      console.log('Email sent: ' + info.response);
+      return true
+    }
+  });
+}
+
+
 module.exports = {
-    getFile,
-    uploadFile,
-    asynqQuery,
-    getUser,
-    generateNewStatus,
-    generateRejectedStatus,
-    generateNotifNotes,
-    responseFormated
+  getFile,
+  uploadFile,
+  asynqQuery,
+  getUser,
+  generateNewStatus,
+  generateRejectedStatus,
+  generateNotifNotes,
+  responseFormated,
+  sendEmailNodemailer
 }
