@@ -501,7 +501,9 @@ function queryGetDataFormated(whereCondition, sortBy, page, pageSize) {
 }
 
 async function countGetDataFormated(whereCondition) {
-    let query = `SELECT COUNT(tl.id_laporan) as countLp FROM ${DATABASE}.tb_laporan tl ${whereCondition}`;
+    let query = `SELECT COUNT(tl.id_laporan) as countLp FROM ${DATABASE}.tb_laporan tl 
+            left join ${DATABASE}.tb_user tu
+            on tl.id_user_pelapor = tu.id_user ${whereCondition}`;
     let result = await asynqQuery(query)
     return result;
 }
