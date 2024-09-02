@@ -328,6 +328,8 @@ class laporanModel {
     }
 
     static async recapitulationReprot(req, res, next) {
+        let { year } = req.query;
+        
         try {
             let queryRecap = `SELECT 
             (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 1) as JAN,
@@ -342,7 +344,7 @@ class laporanModel {
             (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 10) as OKT,
             (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 11) as NOV,
             (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 12) as DES
-            FROM ${DATABASE}.tb_laporan tl LIMIT 1`
+            FROM ${DATABASE}.tb_laporan tl where year(tl.created_at) = ${year} LIMIT 1`
 
             let queryRecapDone = `SELECT 
             (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 1 AND tl.status_laporan = 'done') as JAN,
@@ -357,7 +359,7 @@ class laporanModel {
             (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 10 AND tl.status_laporan = 'done') as OKT,
             (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 11 AND tl.status_laporan = 'done') as NOV,
             (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 12 AND tl.status_laporan = 'done') as DES
-            FROM ${DATABASE}.tb_laporan tl LIMIT 1`
+            FROM ${DATABASE}.tb_laporan tl where year(tl.created_at) = ${year} LIMIT 1`
 
             let queryRecapReject = `SELECT 
             (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 1 AND tl.status_laporan = 'rejected') as JAN,
@@ -372,7 +374,7 @@ class laporanModel {
             (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 10 AND tl.status_laporan = 'rejected') as OKT,
             (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 11 AND tl.status_laporan = 'rejected') as NOV,
             (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 12 AND tl.status_laporan = 'rejected') as DES
-            FROM ${DATABASE}.tb_laporan tl LIMIT 1`
+            FROM ${DATABASE}.tb_laporan tl where year(tl.created_at) = ${year} LIMIT 1`
 
             let result = await asynqQuery(queryRecap);
             let resultDone = await asynqQuery(queryRecapDone);

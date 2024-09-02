@@ -154,7 +154,7 @@ class userModel {
         let convertedImage = ``;
         let query = `UPDATE ${DATABASE}.tb_user SET `;
         let hashedPassword = null;
-        hashedPassword = await bcrypt.hash(new_pass, 10)
+        if (new_pass) hashedPassword = await bcrypt.hash(new_pass, 10)
         //Validasi email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (email && !emailRegex.test(email)) {
