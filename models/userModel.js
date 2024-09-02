@@ -37,7 +37,6 @@ class userModel {
                 }
             });
         } catch (err) {
-            console.log('func loginUser',err);
             res.status(500).send({ msg: err.message })
         }
     };
@@ -223,7 +222,7 @@ class userModel {
             if (email) {
                 var token = jwt.sign({ email: email }, 'indhiro');
                 var ref = req.header('origin');
-                let linkReset = `${ref}/front_end-pelaporan/laporan/reset.html?token=${token}`
+                let linkReset = `${ref}/laporan/reset.html?token=${token}`
                 let resEmail = sendEmailNodemailer('Forgot Password Pelaporan Apps', 
                     `Untuk reset password silahkan klik link dibawah ini :
                     \n${linkReset}
@@ -259,6 +258,13 @@ class userModel {
             console.log(error);
             res.send(responseFormated(false, 400, error.message, {}));   
         }
+    }
+
+    static async checkEmail(req, res, next) {
+        // let email = req.body;
+        // try {
+        //     let query = `SELECT * from ${DATABASE}.tb_user where email = '${email}'`
+        // }
     }
 }
 
