@@ -137,7 +137,7 @@ class userModel {
                     if (err2) throw err2;
                         //result.message[15] => if 0 account not found, if 1 account found
                         if (result2.message[15] == 0) return res.send(responseFormated(false, 400, 'Account not found!', []))
-                        if (result2.changedRows === 1) return res.send(responseFormated(false, 400, 'Password Changed Succesfully!', []))
+                        if (result2.changedRows === 1) return res.send(responseFormated(true, 200, 'Password Changed Succesfully!', []))
                         res.send({flag:true, data:result2, msg:"Password changed succesfully"})
                     })
             } else {
@@ -153,10 +153,15 @@ class userModel {
         let convertedImage = ``;
         let query = `UPDATE ${DATABASE}.tb_user SET `;
         let hashedPassword = null;
+<<<<<<< HEAD
+        if (new_pass) hashedPassword = await bcrypt.hash(new_pass, 10);
+=======
         if (new_pass) hashedPassword = await bcrypt.hash(new_pass, 10)
+>>>>>>> 259feef6ad49e9115aa8b180ffa1a9d33894bb38
         //Validasi email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (email && !emailRegex.test(email)) {
+            console.log("lease enter a valid email address!");
             return res.send(responseFormated(false, 400, "Please enter a valid email address!", []));
         }
 
@@ -177,9 +182,11 @@ class userModel {
         query = query.slice(0, -1);
         query += ` WHERE id_user = ${id_user}`
         
+        console.log(query);
+        
         con.query(query, function(err, result,  fields) {
-            if (err) throw err;
-            res.send(result);
+            res.send(responseFormated(true,200, 'Data successfully changed!', {}));   
+            if (err) res.send(responseFormated(false, 400, err.message, {}));   
         });
 
     };
@@ -220,21 +227,31 @@ class userModel {
         let { email } = req.body;
         try {
             if (email) {
-                var token = jwt.sign({ email: email }, 'indhiro');
-                var ref = req.header('origin');
-                let linkReset = `${ref}/laporan/reset.html?token=${token}`
-                let resEmail = sendEmailNodemailer('Forgot Password Pelaporan Apps', 
-                    `Untuk reset password silahkan klik link dibawah ini :
-                    \n${linkReset}
+                let query = `SELECT * from ${DATABASE}.tb_user where email = '${email}'`
+                let result = await asynqQuery(query);
+                console.log("result", result);
+                
+                if (result[0]) {
+                    var token = jwt.sign({ email: email }, 'indhiro');
+                    var ref = req.header('origin');
+                    let linkReset = `${ref}/laporan/reset.html?token=${token}`
+                    let resEmail = sendEmailNodemailer('Forgot Password Pelaporan Apps', 
+                        `Untuk reset password silahkan klik link dibawah ini :
+                        \n${linkReset}
 
-                    \nTerima kasih`
-                    , email);
-                console.log(resEmail);
+                        \nTerima kasih`
+                        , email);
+                        console.log(email);
+                        res.send(responseFormated(true, 200, 'Success', {}));
+                    console.log(resEmail);
+                } else {
+                    console.log("NOT FOUND");
+                    res.send(responseFormated(false, 400, 'Email not found, please input correct email!', {}));   
+                }
             }
-            res.send(responseFormated(true, 200, 'Success', {}));
         } catch (error) {
             console.log(error);
-            res.send(responseFormated(false, 400, error, {}));
+            res.send(responseFormated(false, 400, error.message, {}));
         }
     }
 
@@ -260,12 +277,6 @@ class userModel {
         }
     }
 
-    static async checkEmail(req, res, next) {
-        // let email = req.body;
-        // try {
-        //     let query = `SELECT * from ${DATABASE}.tb_user where email = '${email}'`
-        // }
-    }
 }
 
 module.exports = userModel;
