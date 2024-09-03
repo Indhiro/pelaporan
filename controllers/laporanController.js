@@ -48,6 +48,10 @@ class laporanController {
     static recapitulationReprot(req, res, next) {
         laporanModel.recapitulationReprot(req, res, next);
     };
+
+    static recapitulationDetailReprot(req, res, next) {
+        laporanModel.recapitulationDetailReprot(req, res, next);
+    };
     
 }
 
