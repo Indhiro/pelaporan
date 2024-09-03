@@ -18,6 +18,7 @@ laporanRouter.put('/approve', laporanController.approveLaporan);
 laporanRouter.put('/rejected', laporanController.rejectedLaporan);
 laporanRouter.get('/get-approve', laporanController.getApproveByLaporanId);
 laporanRouter.get('/get-recapitulation', laporanController.recapitulationReprot);
+laporanRouter.get('/get-recapitulation/detail', laporanController.recapitulationDetailReprot);
 
 
 module.exports = laporanRouter;
