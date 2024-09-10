@@ -178,8 +178,6 @@ class userModel {
         query = query.slice(0, -1);
         query += ` WHERE id_user = ${id_user}`
         
-        console.log(query);
-        
         con.query(query, function(err, result,  fields) {
             res.send(responseFormated(true,200, 'Data successfully changed!', {}));   
             if (err) res.send(responseFormated(false, 400, err.message, {}));   
@@ -225,7 +223,6 @@ class userModel {
             if (email) {
                 let query = `SELECT * from ${DATABASE}.tb_user where email = '${email}'`
                 let result = await asynqQuery(query);
-                console.log("result", result);
                 
                 if (result[0]) {
                     var token = jwt.sign({ email: email }, 'indhiro');
@@ -237,7 +234,6 @@ class userModel {
 
                         \nTerima kasih`
                         , email);
-                        console.log(email);
                         res.send(responseFormated(true, 200, 'Success', {}));
                     console.log(resEmail);
                 } else {
