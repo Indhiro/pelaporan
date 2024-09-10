@@ -128,6 +128,8 @@ class userModel {
             let compareResult = bcrypt.compareSync(password, result[0].password);
             
             if (compareResult) {
+                let compareResult2 = bcrypt.compareSync(password, new_pass);
+                if (compareResult2 == true) return res.send(responseFormated(false, 400, "New password cannot be same as your current password!", []))
                 let query2 = `UPDATE ${DATABASE}.tb_user
                 SET password = '${new_pass}', updated_at = CURRENT_TIMESTAMP 
                 WHERE id_user = '${id_user}'
@@ -135,11 +137,11 @@ class userModel {
                 //EXECUTION QUERY
                 con.query(query2, function (err2, result2, fields2) {
                     if (err2) throw err2;
-                        //result.message[15] => if 0 account not found, if 1 account found
-                        if (result2.message[15] == 0) return res.send(responseFormated(false, 400, 'Account not found!', []))
-                        if (result2.changedRows === 1) return res.send(responseFormated(true, 200, 'Password Changed Succesfully!', []))
-                        res.send({flag:true, data:result2, msg:"Password changed succesfully"})
-                    })
+                    //result.message[15] => if 0 account not found, if 1 account found
+                    if (result2.message[15] == 0) return res.send(responseFormated(false, 400, 'Account not found!', []))
+                    if (result2.changedRows === 1) return res.send(responseFormated(true, 200, 'Password Changed Succesfully!', []))
+                    res.send({flag:true, data:result2, msg:"Password changed succesfully"})
+                })
             } else {
                 console.log('Password wrong!', result[0].password);
                 res.send(responseFormated(false, 400, "Current password incorrect!", []))
@@ -157,7 +159,7 @@ class userModel {
         //Validasi email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (email && !emailRegex.test(email)) {
-            console.log("lease enter a valid email address!");
+            console.log("Please enter a valid email address!");
             return res.send(responseFormated(false, 400, "Please enter a valid email address!", []));
         }
 
@@ -223,7 +225,6 @@ class userModel {
             if (email) {
                 let query = `SELECT * from ${DATABASE}.tb_user where email = '${email}'`
                 let result = await asynqQuery(query);
-                
                 if (result[0]) {
                     var token = jwt.sign({ email: email }, 'indhiro');
                     var ref = req.header('origin');
@@ -235,7 +236,6 @@ class userModel {
                         \nTerima kasih`
                         , email);
                         res.send(responseFormated(true, 200, 'Success', {}));
-                    console.log(resEmail);
                 } else {
                     console.log("NOT FOUND");
                     res.send(responseFormated(false, 400, 'Email not found, please input correct email!', {}));   
@@ -254,8 +254,11 @@ class userModel {
         try {
             let qSearch = `SELECT * from ${DATABASE}.tb_user where email = '${decoded.email}';`
             let resSearch = await asynqQuery(qSearch);
+            //Validasi
             if (resSearch.length == 0) return res.send(responseFormated(false, 404, 'Email not found!', {})); 
-            
+            let compareResult = bcrypt.compareSync(resetPassword, resSearch[0].password);
+            console.log("COLOK", compareResult);
+            if (compareResult == true) return res.send(responseFormated(false, 400, "New password cannot be same as your current password!", []))
             if (decoded) {
                 let query = `UPDATE ${DATABASE}.tb_user
                 SET password = '${new_pass}' 
