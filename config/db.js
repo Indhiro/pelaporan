@@ -1,19 +1,23 @@
-module.exports = {
-    "DATABASE": 'db_laporan',
-    "HOST": "localhost",
-    "USER": "root",
-    "PASSWORD": "asdasd", // asdasd , Indhiro123
-    // "PORT": '8889',
-    // "URI": '',
-    // "VERSION": ''
-}
-
+// LOCAL
 // module.exports = {
-//     "DATABASE": "bo4rwwuumd7ctntlolol",
-//     "HOST": "bo4rwwuumd7ctntlolol-mysql.services.clever-cloud.com",
-//     "USER": "uxoxizsl3mjpmjee",
-//     "PASSWORD": "WxBaqIa5SNqGoGMB0dIR",
-//     "PORT": "3306",
-//     "URI": "mysql://uxoxizsl3mjpmjee:WxBaqIa5SNqGoGMB0dIR@bo4rwwuumd7ctntlolol-mysql.services.clever-cloud.com:3306/bo4rwwuumd7ctntlolol",
-//     "VERSION": "8.0"
+//     "DATABASE": 'db_laporan',
+//     "HOST": "localhost",
+//     "USER": "root",
+//     "PASSWORD": "asdasd", // asdasd , Indhiro123
+//     // "PORT": '8889',
+//     // "URI": '',
+//     // "VERSION": ''
 // }
+// PRODUCTION
+module.exports = {
+    "MYSQLDATABASE": "railway",
+    "MYSQLHOST": "mysql.railway.internal",
+    "MYSQLUSER": "root",
+    "MYSQLPASSWORD": "gtBxBzmUJorCmSVItmrNiPpTMNzRGVoF",
+    "MYSQLPORT": "3306",
+    "MYSQL_URL": "mysql://root:gtBxBzmUJorCmSVItmrNiPpTMNzRGVoF@mysql.railway.internal:3306/railway",
+    "MYSQL_ROOT_PASSWORD": "gtBxBzmUJorCmSVItmrNiPpTMNzRGVoF",
+    "MYSQL_DATABASE": "railway",
+    "MYSQL_PUBLIC_URL": "mysql://root:gtBxBzmUJorCmSVItmrNiPpTMNzRGVoF@junction.proxy.rlwy.net:30922/railway",
+    "MYSQL_ROOT_PASSWORD": "gtBxBzmUJorCmSVItmrNiPpTMNzRGVoF"
+}
