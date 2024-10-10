@@ -473,7 +473,7 @@ function queryGetDataFormated(whereCondition, sortBy, page, pageSize) {
     }
     if (whereCondition == '') whereCondition += ` WHERE tl.deleted_at is null `
     else whereCondition += ` AND tl.deleted_at is null `
-    let query = `SELECT tl.*, tu.nama, tu.role, tu.point_role, tuun.nama_penerima, tuun.role, tuun2.nama_petugas,
+    let query = `SELECT tl.*, tu.nama, tu.role, tu.role as role_pelapor, tuun.nama_penerima, tuun.role, tuun2.nama_petugas,
         ((SELECT IF(tlds.countLike, tlds.countLike, 0)) - (SELECT IF(tldis2.countDislike, tldis2.countDislike, 0))) as countLikeDislike,
         ((SELECT IF(tld3.point_like, tld3.point_like, 0)) - (SELECT IF(tld4.point_dislike, tld4.point_dislike, 0)) +
         (SELECT IF(tc2.point_comment, tc2.point_comment, 0)) - (SELECT IF(tr2.point_report, tr2.point_report, 0))) 

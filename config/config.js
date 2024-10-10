@@ -79,7 +79,6 @@ const createTable = {
         title varchar(100) NOT NULL,
         text text NOT NULL,
         image varchar(255),
-        status_validation boolean,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP,
         deleted_at TIMESTAMP,
@@ -157,7 +156,7 @@ const createTable = {
         FOREIGN KEY (id_laporan) REFERENCES tb_laporan(id_laporan)
     )`,
     queryTbApprove: `CREATE TABLE IF NOT EXISTS ${mybd.DATABASE}.tb_approve (
-        id_approver int NOT NULL AUTO_INCREMENT,
+        id_approve int NOT NULL AUTO_INCREMENT,
         id_user int NOT NULL,
         id_laporan int NOT NULL,
         role enum('mahasiswa','dosen','pengawas','petugas','kepala prodi','wakil dekan 2','wakil rektor 2','admin'),
@@ -166,13 +165,13 @@ const createTable = {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP,
         deleted_at TIMESTAMP,
-        PRIMARY KEY (id_approver),
+        PRIMARY KEY (id_approve),
         FOREIGN KEY (id_user) REFERENCES tb_user(id_user),
         FOREIGN KEY (id_laporan) REFERENCES tb_laporan(id_laporan)
     )`,
     queryTbNotification: `CREATE TABLE IF NOT EXISTS ${mybd.DATABASE}.tb_notification (
-        id int NOT NULL AUTO_INCREMENT,
-        laporan_id int NOT NULL,
+        id_notification int NOT NULL AUTO_INCREMENT,
+        id_laporan int NOT NULL,
         id_user int NOT NULL,
         notes varchar(255) NOT NULL,
         seen boolean,
@@ -180,7 +179,7 @@ const createTable = {
         updated_at TIMESTAMP,
         deleted_at TIMESTAMP,
         PRIMARY KEY (id),
-        FOREIGN KEY (laporan_id) REFERENCES tb_laporan(id_laporan),
+        FOREIGN KEY (id_laporan) REFERENCES tb_laporan(id_laporan),
         FOREIGN KEY (id_user) REFERENCES tb_user(id_user)
     )`,
 }

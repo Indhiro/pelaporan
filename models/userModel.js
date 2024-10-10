@@ -64,13 +64,13 @@ class userModel {
 
     static async registerUser(req, res, next) {
         try {
-            let { role, email, username, fullName, gender, no_unik, no_telp } = req.body; // no_unik dari mana? flow nya gimana?
+            let { role, email, username, fullName, gender, no_unik, no_telp, acceptTerms } = req.body; // no_unik dari mana? flow nya gimana?
             let total_laporan = 0;
             let point_role = 0;
             let created_at = `CURRENT_TIMESTAMP`;
             let password = await bcrypt.hash(req.body.password, 10);
             //QUERY1
-            let query = `SELECT * FROM ${DATABASE}.tb_user WHERE username = '${username}'`;
+            let query = `SELECT * FROM ${DATABASE}.tb_user`;
             con.query(query, function (err, result, fields) {
                 if (err) throw err;
                 //Validasi email
@@ -89,10 +89,11 @@ class userModel {
                 if (!gender) return res.send(responseFormated(false, 400, 'Gender coloumn can not be empty!', []));
                 if (gender  == 'Select Gender') return res.send(responseFormated(false, 400, 'Gender coloumn can not be empty!', []));
                 if (!no_telp) return res.send(responseFormated(false, 400, 'Phone number coloumn can not be empty!', []));
+                if (acceptTerms == false) return res.send(responseFormated(false, 400, 'You must agree to the User Agreement & Policies to continue!', []));
                 for (let i = 0; i < result.length; i++) {
                     if (username == result[i].username) return res.send(responseFormated(false, 400, 'Username used!, please use another username!', []));
                     if (email == result[i].email) return res.send(responseFormated(false, 400, 'Email used!, please use another email!', []));
-                    if (no_unik == result[i].no_unik) return res.send(responseFormated(false, 400, 'NIM/NIP/NUPTK!, please use another NIM/NIP/NUPTK!', []));
+                    if (no_unik == result[i].no_unik) return res.send(responseFormated(false, 400, 'NIM/NIP/NUPTK used!, please use another NIM/NIP/NUPTK!', []));
                 };
                 if (role == 'mahasiswa') point_role = 1;
                 if (role == 'dosen' || role == 'pengawas' || role == 'petugas') point_role = 2;
@@ -150,42 +151,56 @@ class userModel {
     };
 
     static async updateUser(req, res, next) {
-        let { id_user, nama, email, gender, no_telp, new_pass } = req.body;
+        let { id_user, nama, email, gender, no_telp } = req.body;
         let image = req.file ? req.file.path : null;
         let convertedImage = ``;
-        let query = `UPDATE ${DATABASE}.tb_user SET `;
-        let hashedPassword = null;
-        if (new_pass) hashedPassword = await bcrypt.hash(new_pass, 10);
-        //Validasi email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (email && !emailRegex.test(email)) {
-            console.log("Please enter a valid email address!");
-            return res.send(responseFormated(false, 400, "Please enter a valid email address!", []));
-        }
-
-        if (image) {
-            for (let index = 0; index < image.length; index++) {
-                const char = image[index];
-                if (char == `\\`) convertedImage += `\\\\\\` // MYSQL TIDAK MEMBACA \ cm 1
-                else convertedImage += char
+        // let hashedPassword = null;
+        // if (new_pass) hashedPassword = await bcrypt.hash(new_pass, 10);
+        let query2 = `SELECT * FROM ${DATABASE}.tb_user`;
+        con.query(query2, function (err2, result2, fields2) {
+            //Validasi email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (email && !emailRegex.test(email)) {
+                console.log("Please enter a valid email address!");
+                return res.send(responseFormated(false, 400, "Please enter a valid email address!", []));
             }
-        }
-        if(new_pass) query += ` password = '${hashedPassword}',`;
-        if(nama) query += ` nama = '${nama}',`;
-        if(email) query += ` email = '${email}',`;
-        if(gender) query += ` gender = '${gender}',`;
-        if(no_telp) query += ` no_telp = '${no_telp}',`;
-        if(image) query += ` image = '${convertedImage}',`;
-        query += ` updated_at = CURRENT_TIMESTAMP,`
-        query = query.slice(0, -1);
-        query += ` WHERE id_user = ${id_user}`
-        
-        console.log(query);
-        
-        con.query(query, function(err, result,  fields) {
-            res.send(responseFormated(true,200, 'Data successfully changed!', {}));   
-            if (err) res.send(responseFormated(false, 400, err.message, {}));   
+    
+            for (let i = 0; i < result2.length; i++) {
+                if (email == result2[i].email && id_user != result2[i].id_user) {
+                    return res.send(responseFormated(false, 400, 'Email used!, please use another email!', []));
+                }
+            };  
+            
+            if (err2) res.send(responseFormated(false, 400, err2.message, {}));   
+           
+            if (image) {
+                for (let index = 0; index < image.length; index++) {
+                    const char = image[index];
+                    if (char == `\\`) convertedImage += `\\\\\\` // MYSQL TIDAK MEMBACA \ cm 1
+                    else convertedImage += char
+                }
+            }
+
+            let query = `UPDATE ${DATABASE}.tb_user SET `;
+            // if(new_pass) query += ` password = '${hashedPassword}',`;
+            if(nama) query += ` nama = '${nama}',`;
+            if(email) query += ` email = '${email}',`;
+            if(gender) query += ` gender = '${gender}',`;
+            if(no_telp) query += ` no_telp = '${no_telp}',`;
+            if(image) query += ` image = '${convertedImage}',`;
+            query += ` updated_at = CURRENT_TIMESTAMP,`
+            query = query.slice(0, -1);
+            query += ` WHERE id_user = ${id_user}`
+            
+            console.log(query);
+            
+            console.log(`Data successfully changed!`);
+            con.query(query, function(err, result,  fields) {
+                if (err) res.send(responseFormated(false, 400, err.message, {}));   
+                res.send(responseFormated(true,200, 'Data successfully changed!', {}));   
+            });
         });
+        
 
     };
 
@@ -230,11 +245,10 @@ class userModel {
                 if (result[0]) {
                     var token = jwt.sign({ email: email }, 'indhiro');
                     var ref = req.header('origin');
-                    let linkReset = `${ref}/laporan/reset.html?token=${token}`
+                    let linkReset = `${ref}/reset.html?token=${token}`
                     let resEmail = sendEmailNodemailer('Forgot Password Pelaporan Apps', 
                         `Untuk reset password silahkan klik link dibawah ini :
                         \n${linkReset}
-
                         \nTerima kasih`
                         , email);
                         res.send(responseFormated(true, 200, 'Success', {}));
