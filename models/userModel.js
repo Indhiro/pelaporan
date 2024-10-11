@@ -64,26 +64,31 @@ class userModel {
 
     static async registerUser(req, res, next) {
         try {
-            let { role, email, username, fullName, gender, no_unik, no_telp, acceptTerms } = req.body; // no_unik dari mana? flow nya gimana?
+            let { role, email, username, fullName, gender, no_unik, no_telp, acceptTerms, password } = req.body; // no_unik dari mana? flow nya gimana?
             let total_laporan = 0;
             let point_role = 0;
             let created_at = `CURRENT_TIMESTAMP`;
-            let password = await bcrypt.hash(req.body.password, 10);
+            let getPass = await bcrypt.hash(password, 10);
             //QUERY1
             let query = `SELECT * FROM ${DATABASE}.tb_user`;
             con.query(query, function (err, result, fields) {
-                if (err) throw err;
+                if (err) res.send(responseFormated(false, 400, err.message, {}));   
                 //Validasi email
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(email)) {
                     return res.send(responseFormated(false, 400, "Please enter a valid email address!", []));
                 }
+                const passRegex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}/
+                if (!password.match(passRegex)) {
+                    return res.send(responseFormated(false, 400, `Password must contain at least one number, one uppercase and lowercase letter,
+                    and at least 8 or more characters!`, []));
+                }
                 //VALIDASI
+                if (!password) return res.send(responseFormated(false, 400, 'Password coloumn can not be empty!', []));
                 if (!fullName) return res.send(responseFormated(false, 400, 'Full Name coloumn can not be empty!', []));
                 if (!no_unik) return res.send(responseFormated(false, 400, 'NIM/NIP/NUPTK name coloumn can not be empty!', []));
                 if (!email) return res.send(responseFormated(false, 400, 'Email coloumn can not be empty!', []));
                 if (!username) return res.send(responseFormated(false, 400, 'Username coloumn can not be empty!', []));
-                if (!password) return res.send(responseFormated(false, 400, 'Password coloumn can not be empty!', []));
                 if (!role) return res.send(responseFormated(false, 400, 'Role coloumn can not be empty!', []));
                 if (role == 'Select Role') return res.send(responseFormated(false, 400, 'Role coloumn can not be empty!', []));
                 if (!gender) return res.send(responseFormated(false, 400, 'Gender coloumn can not be empty!', []));
@@ -103,9 +108,9 @@ class userModel {
                 //QUERY2
                 let query2 = `INSERT INTO ${DATABASE}.tb_user SET
                     role = '${role}', point_role = ${point_role}, username = '${username}', nama = '${fullName}', email = '${email}', gender = '${gender}', 
-                    no_unik = ${no_unik}, no_telp = '${no_telp}', created_at = ${created_at}, password = '${password}', total_laporan = '${total_laporan}'`;
+                    no_unik = ${no_unik}, no_telp = '${no_telp}', created_at = ${created_at}, password = '${getPass}', total_laporan = '${total_laporan}'`;
                 con.query(query2, function (err2, result2, fields2) {
-                    if (err2) throw err2;
+                    if (err2) res.send(responseFormated(false, 400, err2.message, {}));   
                     res.send(responseFormated(true, 200, '', result2));
                 });
             })
@@ -115,12 +120,17 @@ class userModel {
     };
 
     static async updatePassUser(req, res, next) {
-        let { id_user, password } = req.body;
-        let new_pass = await bcrypt.hash(req.body.new_pass, 10);
+        let { id_user, password, new_pass } = req.body;
+        let get_new_pass = await bcrypt.hash(req.body.new_pass, 10);
         //VALIDASI
         if (!id_user) return res.send(responseFormated(false, 400, 'Id_user empty, please try again!', []));
         if (!password) return res.send(responseFormated(false, 400, 'Password empty, please try again!', []));
         if (!new_pass) return res.send(responseFormated(false, 400, 'New password empty, please try again!', []));
+        const passRegex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}/
+            if (!new_pass.match(passRegex)) {
+                return res.send(responseFormated(false, 400, `Password must contain at least one number, one uppercase and lowercase letter,
+                and at least 8 or more characters!`, []));
+            }
         //QUERY
         let query = `SELECT password
         FROM ${DATABASE}.tb_user
@@ -129,10 +139,10 @@ class userModel {
             let compareResult = bcrypt.compareSync(password, result[0].password);
             
             if (compareResult) {
-                let compareResult2 = bcrypt.compareSync(password, new_pass);
+                let compareResult2 = bcrypt.compareSync(password, get_new_pass);
                 if (compareResult2 == true) return res.send(responseFormated(false, 400, "New password cannot be same as your current password!", []))
                 let query2 = `UPDATE ${DATABASE}.tb_user
-                SET password = '${new_pass}', updated_at = CURRENT_TIMESTAMP 
+                SET password = '${get_new_pass}', updated_at = CURRENT_TIMESTAMP 
                 WHERE id_user = '${id_user}'
                 AND password = '${result[0].password}'`;
                 //EXECUTION QUERY
