@@ -7,6 +7,7 @@ const cors = require('cors');
 const app = express();
 const PORT = 3000;
 const morgan = require('morgan');
+// const http = require('http').createServer(app);
 
 app.use(cors());
 app.use(express.json());
@@ -31,3 +32,4 @@ app.use((error, req, res, next) => {
 });
 
 app.listen(PORT, () => console.log('Server berjalan di port ' + PORT + "..."));
+// http.listen(PORT, () => console.log('Server berjalan di port ' + PORT + "..."));
