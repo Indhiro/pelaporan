@@ -251,7 +251,7 @@ class laporanModel {
                     if (adjustCol(resGenerateStatus.status)) updateUserIdToLaporan = `,${adjustCol(resGenerateStatus.status)} = ${resGenerateStatus.userId}`
                     let updateUserByRole = '';
                     if (user.role == 'pengawas') {
-                        updateUserByRole = `, id_user_penerima = ${+user_penerima}, layer = ${+layer}`
+                        if(laporan.status_laporan == 'submitted') updateUserByRole = `, id_user_penerima = ${+user_penerima}, layer = ${+layer}`
                     }
                     let updateQuery = `update ${DATABASE}.tb_laporan tl set
                     tl.status_laporan = '${resGenerateStatus.status}'
@@ -416,7 +416,7 @@ function adjustCol(status) {
 }
 
 function laporanStatusByRoleDashboard(role) {
-    if (role == 'mahasiswa') return `'submitted','approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
+    if (role == 'mahasiswa') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
     if (role == 'dosen') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
     if (role == 'pengawas') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
     if (role == 'kepala prodi') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;

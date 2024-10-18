@@ -65,6 +65,7 @@ class userModel {
     static async registerUser(req, res, next) {
         try {
             let { role, email, username, fullName, gender, no_unik, no_telp, acceptTerms, password } = req.body; // no_unik dari mana? flow nya gimana?
+            username = username.toLowerCase()
             let total_laporan = 0;
             let point_role = 0;
             let created_at = `CURRENT_TIMESTAMP`;
@@ -161,11 +162,11 @@ class userModel {
     };
 
     static async updateUser(req, res, next) {
-        let { id_user, nama, email, gender, no_telp } = req.body;
+        let { id_user, nama, email, gender, no_telp, new_pass } = req.body;
         let image = req.file ? req.file.path : null;
         let convertedImage = ``;
-        // let hashedPassword = null;
-        // if (new_pass) hashedPassword = await bcrypt.hash(new_pass, 10);
+        let hashedPassword = null;
+        if (new_pass) hashedPassword = await bcrypt.hash(new_pass, 10);
         let query2 = `SELECT * FROM ${DATABASE}.tb_user`;
         con.query(query2, function (err2, result2, fields2) {
             //Validasi email
@@ -192,7 +193,7 @@ class userModel {
             }
 
             let query = `UPDATE ${DATABASE}.tb_user SET `;
-            // if(new_pass) query += ` password = '${hashedPassword}',`;
+            if(new_pass) query += ` password = '${hashedPassword}',`;
             if(nama) query += ` nama = '${nama}',`;
             if(email) query += ` email = '${email}',`;
             if(gender) query += ` gender = '${gender}',`;

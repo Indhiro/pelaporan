@@ -22,9 +22,9 @@ con.connect(function (err) {
     con.query(createTable.queryTbLaporan, function(err, result, fields) {
         if (err) throw err;
     });
-    con.query(createTable.queryTbChat, function(err, result, fields) {
-        if (err) throw err;
-    });
+    // con.query(createTable.queryTbChat, function(err, result, fields) {
+    //     if (err) throw err;
+    // });
     con.query(createTable.queryTbLikeDislike, function(err, result, fields) {
         if (err) throw err;
     });
@@ -54,7 +54,7 @@ const createTable = {
         nama varchar(255) NOT NULL,
         password varchar(255) NOT NULL,
         gender enum ('male', 'female') NOT NULL,
-        no_unik int NOT NULL,
+        no_unik varchar(255) NOT NULL,
         no_telp varchar(20) NOT NULL,
         image varchar(255),
         total_laporan int,
@@ -89,33 +89,33 @@ const createTable = {
         FOREIGN KEY (id_kepala_prodi) REFERENCES tb_user(id_user),
         FOREIGN KEY (id_wakil_dekan_2) REFERENCES tb_user(id_user),
         FOREIGN KEY (id_wakil_rektor_2) REFERENCES tb_user(id_user),
-        FOREIGN KEY (id_petugas) REFERENCES tb_user(id_petugas)
+        FOREIGN KEY (id_petugas) REFERENCES tb_user(id_user)
     )`,
-    queryTbChat: `CREATE TABLE IF NOT EXISTS ${mybd.DATABASE}.tb_chat (
-        id_chat int NOT NULL AUTO_INCREMENT,
-        id_user_pengguna int NOT NULL,
-        id_user_petugas int NOT NULL,
-        id_laporan int NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP,
-        deleted_at TIMESTAMP,
-        PRIMARY KEY (id_chat),
-        FOREIGN KEY (id_user_pengguna) REFERENCES tb_user(id_user),
-        FOREIGN KEY (id_user_petugas) REFERENCES tb_user(id_user),
-        FOREIGN KEY (id_laporan) REFERENCES tb_laporan(id_laporan)
-    )`,
-    queryTbChatSender: `CREATE TABLE IF NOT EXISTS ${mybd.DATABASE}.tb_chat_sender (
-        id_chat_sender int NOT NULL AUTO_INCREMENT,
-        id_chat int NOT NULL,
-        id_user_sender int NOT NULL,
-        text text,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP,
-        deleted_at TIMESTAMP,
-        PRIMARY KEY (id_chat_sender),
-        FOREIGN KEY (id_chat) REFERENCES tb_chat(id_chat),
-        FOREIGN KEY (id_user_sender) REFERENCES tb_user(id_user)
-    )`,
+    // queryTbChat: `CREATE TABLE IF NOT EXISTS ${mybd.DATABASE}.tb_chat (
+    //     id_chat int NOT NULL AUTO_INCREMENT,
+    //     id_user_pengguna int NOT NULL,
+    //     id_user_petugas int NOT NULL,
+    //     id_laporan int NOT NULL,
+    //     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    //     updated_at TIMESTAMP,
+    //     deleted_at TIMESTAMP,
+    //     PRIMARY KEY (id_chat),
+    //     FOREIGN KEY (id_user_pengguna) REFERENCES tb_user(id_user),
+    //     FOREIGN KEY (id_user_petugas) REFERENCES tb_user(id_user),
+    //     FOREIGN KEY (id_laporan) REFERENCES tb_laporan(id_laporan)
+    // )`,
+    // queryTbChatSender: `CREATE TABLE IF NOT EXISTS ${mybd.DATABASE}.tb_chat_sender (
+    //     id_chat_sender int NOT NULL AUTO_INCREMENT,
+    //     id_chat int NOT NULL,
+    //     id_user_sender int NOT NULL,
+    //     text text,
+    //     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    //     updated_at TIMESTAMP,
+    //     deleted_at TIMESTAMP,
+    //     PRIMARY KEY (id_chat_sender),
+    //     FOREIGN KEY (id_chat) REFERENCES tb_chat(id_chat),
+    //     FOREIGN KEY (id_user_sender) REFERENCES tb_user(id_user)
+    // )`,
     queryTbLikeDislike: `CREATE TABLE IF NOT EXISTS ${mybd.DATABASE}.tb_like_dislike (
         id_like_dislike int NOT NULL AUTO_INCREMENT,
         id_user int NOT NULL,
@@ -178,7 +178,7 @@ const createTable = {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP,
         deleted_at TIMESTAMP,
-        PRIMARY KEY (id),
+        PRIMARY KEY (id_notification),
         FOREIGN KEY (id_laporan) REFERENCES tb_laporan(id_laporan),
         FOREIGN KEY (id_user) REFERENCES tb_user(id_user)
     )`,
