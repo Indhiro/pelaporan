@@ -251,7 +251,7 @@ class laporanModel {
                     if (adjustCol(resGenerateStatus.status)) updateUserIdToLaporan = `,${adjustCol(resGenerateStatus.status)} = ${resGenerateStatus.userId}`
                     let updateUserByRole = '';
                     if (user.role == 'pengawas') {
-                        updateUserByRole = `, id_user_penerima = ${+user_penerima}, layer = ${+layer}`
+                        if(laporan.status_laporan == 'submitted') updateUserByRole = `, id_user_penerima = ${+user_penerima}, layer = ${+layer}`
                     }
                     let updateQuery = `update ${DATABASE}.tb_laporan tl set
                     tl.status_laporan = '${resGenerateStatus.status}'
@@ -416,7 +416,7 @@ function adjustCol(status) {
 }
 
 function laporanStatusByRoleDashboard(role) {
-    if (role == 'mahasiswa') return `'submitted','approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
+    if (role == 'mahasiswa') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
     if (role == 'dosen') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
     if (role == 'pengawas') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
     if (role == 'kepala prodi') return `'approve_pengawas','approve_kepala_prodi','approve_wakil_dekan_2','final_approve','progress','check'`;
@@ -473,7 +473,7 @@ function queryGetDataFormated(whereCondition, sortBy, page, pageSize) {
     }
     if (whereCondition == '') whereCondition += ` WHERE tl.deleted_at is null `
     else whereCondition += ` AND tl.deleted_at is null `
-    let query = `SELECT tl.*, tu.nama, tu.role, tu.point_role, tuun.nama_penerima, tuun.role, tuun2.nama_petugas,
+    let query = `SELECT tl.*, tu.nama, tu.role, tu.role as role_pelapor, tuun.nama_penerima, tuun.role, tuun2.nama_petugas,
         ((SELECT IF(tlds.countLike, tlds.countLike, 0)) - (SELECT IF(tldis2.countDislike, tldis2.countDislike, 0))) as countLikeDislike,
         ((SELECT IF(tld3.point_like, tld3.point_like, 0)) - (SELECT IF(tld4.point_dislike, tld4.point_dislike, 0)) +
         (SELECT IF(tc2.point_comment, tc2.point_comment, 0)) - (SELECT IF(tr2.point_report, tr2.point_report, 0))) 

@@ -96,15 +96,15 @@ async function getFile(next, path) {
   }
 }
 
-async function generateNotifNotes(status, userIdTo, from, role, laporan_id) {
+async function generateNotifNotes(status, userIdTo, from, role, id_laporan) {
   let notes = null
   if (status == 'approve') notes = `${from}(${role}) has approved a report!`;
   if (status == 'reject') notes = `${from}(${role}) has rejected a report!`;
   if (status == 'comment') notes = `${from} comment your report!`;
   if (status == 'like') notes = `${from} liked your report!`;
   if (status == 'dislike') notes = `${from} disliked your report!`;
-  let query = `INSERT INTO ${DATABASE}.tb_notification (id_user, notes, laporan_id)
-                VALUES (${userIdTo}, '${notes}', ${laporan_id});`
+  let query = `INSERT INTO ${DATABASE}.tb_notification (id_user, notes, id_laporan)
+                VALUES (${userIdTo}, '${notes}', ${id_laporan});`
   let result = await asynqQuery(query)
   if (result) return true
   else return false

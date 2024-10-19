@@ -16,7 +16,7 @@ class reportModel {
     static async getLaporanReport(req, res, next) {
         try {
             let result = [];
-            let query = `SELECT tl.* , tr.*, tu.nama, tu.role, tu.point_role,tuun.nama_penerima, tuun.role, tur.nama as user_report, 
+            let query = `SELECT tl.* , tr.*, tu.nama, tu.role as role_pelapor,tuun.nama_penerima, tuun.role, tur.nama as user_report, 
             DATE_FORMAT(tr.created_at, "%d-%m-%Y") as dateformated 
             FROM ${DATABASE}.tb_laporan tl
                 INNER JOIN ${DATABASE}.tb_report tr ON tl.id_laporan = tr.id_laporan
