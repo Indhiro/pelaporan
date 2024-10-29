@@ -16,8 +16,8 @@ app.use(morgan('dev'));
 app.use(router)
 
 app.use((req, res, next) => {
-    const error = new Error('Not Found');
-    error.status = 404;
+    const error = new Error('Server issues!');
+    error.status = 500;
     next(error);
 });
 

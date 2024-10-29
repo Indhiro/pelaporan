@@ -74,7 +74,10 @@ class userModel {
             let query = `SELECT * FROM ${DATABASE}.tb_user`;
             con.query(query, function (err, result, fields) {
                 if (err) res.send(responseFormated(false, 400, err.message, {}));   
-                //Validasi email
+                //Validasi
+                if (!fullName) return res.send(responseFormated(false, 400, 'Full Name coloumn can not be empty!', []));
+                if (!no_unik) return res.send(responseFormated(false, 400, 'NIM/NIP/NUPTK name coloumn can not be empty!', []));
+                if (!email) return res.send(responseFormated(false, 400, 'Email coloumn can not be empty!', []));
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(email)) {
                     return res.send(responseFormated(false, 400, "Please enter a valid email address!", []));
@@ -84,12 +87,8 @@ class userModel {
                     return res.send(responseFormated(false, 400, `Password must contain at least one number, one uppercase and lowercase letter,
                     and at least 8 or more characters!`, []));
                 }
-                //VALIDASI
-                if (!password) return res.send(responseFormated(false, 400, 'Password coloumn can not be empty!', []));
-                if (!fullName) return res.send(responseFormated(false, 400, 'Full Name coloumn can not be empty!', []));
-                if (!no_unik) return res.send(responseFormated(false, 400, 'NIM/NIP/NUPTK name coloumn can not be empty!', []));
-                if (!email) return res.send(responseFormated(false, 400, 'Email coloumn can not be empty!', []));
                 if (!username) return res.send(responseFormated(false, 400, 'Username coloumn can not be empty!', []));
+                if (!password) return res.send(responseFormated(false, 400, 'Password coloumn can not be empty!', []));
                 if (!role) return res.send(responseFormated(false, 400, 'Role coloumn can not be empty!', []));
                 if (role == 'Select Role') return res.send(responseFormated(false, 400, 'Role coloumn can not be empty!', []));
                 if (!gender) return res.send(responseFormated(false, 400, 'Gender coloumn can not be empty!', []));
