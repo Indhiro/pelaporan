@@ -396,7 +396,7 @@ class laporanModel {
          from ${DATABASE}.tb_laporan tl 
             left join ${DATABASE}.tb_user tu on tl.id_user_pelapor = tu.id_user
             left join (select tuu2.nama as nama_petugas, tuu2.id_user
-                from ${DATABASE}.tb_user tuu2) tuun2 on tl.id_user_pelapor = tuun2.id_user
+                from ${DATABASE}.tb_user tuu2) tuun2 on tl.id_petugas = tuun2.id_user
             left join (select tuu.nama as nama_penerima, tuu.id_user, tuu.role
                 from ${DATABASE}.tb_user tuu) tuun on tl.id_user_penerima = tuun.id_user
         where MONTH(tl.created_at) = ${month} and year(tl.created_at) = ${year}`

@@ -3,7 +3,7 @@ module.exports = {
     "DATABASE": 'db_laporan',
     "HOST": "localhost",
     "USER": "root",
-    "PASSWORD": "asdasd", // asdasd , Indhiro123
+    "PASSWORD": "Indhiro123", // asdasd , Indhiro123
     // "PORT": '8889',
     // "URI": '',
     // "VERSION": ''
