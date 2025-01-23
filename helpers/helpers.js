@@ -74,6 +74,7 @@ function uploadFile() {
           cb(null, Date.now() + '_' + file.originalname);
         }
       }),
+      //MAX 10 MB
       limits: { fileSize: 10000000 },
       fileFilter: function (req, file, cb) {
         if (!file.originalname.match(/\.(jpg|JPG|webp|jpeg|JPEG|png|PNG|gif|GIF|jfif|JFIF)$/)) {
@@ -89,6 +90,7 @@ async function getFile(next, path) {
   // console.log("INI PATH",path);
   try {
     let data = fs.readFileSync(path)
+    //Convert binary menjadi string base64 
     return data.toString('base64')
   } catch (error) {
     console.log('helpers.js/getFile', error);

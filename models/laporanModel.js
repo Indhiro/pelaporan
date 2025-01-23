@@ -113,6 +113,8 @@ class laporanModel {
             let result = await asynqQuery(query)
             for (let index = 0; index < result.length; index++) {
                 const element = result[index];
+                console.log(element,"element");
+                
                 if (element.image) element.image = await getFile(next, element.image)
             }
             res.send(responseFormated(true, 200, 'Success', { result, totalLp: countLp[0].countLp }));
@@ -263,6 +265,7 @@ class laporanModel {
                     //INSERt INTO tb_approve
                     let approveQuery = `INSERT INTO ${DATABASE}.tb_approve SET
                     id_user = '${userlogin}', id_laporan = '${id_laporan}', role = '${user.role}', status = 'approved', catatan = '${catatan}'`
+                    
                     await asynqQuery(approveQuery) // EXECUTE QUERY UPDATE
                     await generateNotifNotes('approve', laporan.id_user_pelapor, user.nama, user.role, id_laporan) // NOTIFICATION
                     await generateNotifNotes('approve', userPenerima.id_user, user.nama, user.role, id_laporan) // NOTIFICATION
@@ -309,6 +312,7 @@ class laporanModel {
         }
     }
 
+    //Untuk mendapatkan data approve by pada show details
     static async getApproveByLaporanId(req, res, next) {
         // return res.send('ok') // DIQUERY NYA TB APPROVE EMG ADA?
         try {
@@ -332,48 +336,48 @@ class laporanModel {
         
         try {
             let queryRecap = `SELECT 
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 1 AND year(tl.created_at) = ${year}) as JAN,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 2 AND year(tl.created_at) = ${year}) as FEB,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 3 AND year(tl.created_at) = ${year}) as MAR,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 4 AND year(tl.created_at) = ${year}) as APR,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 5 AND year(tl.created_at) = ${year}) as MAY,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 6 AND year(tl.created_at) = ${year}) as JUN,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 7 AND year(tl.created_at) = ${year}) as JUL,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 8 AND year(tl.created_at) = ${year}) as AUG,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 9 AND year(tl.created_at) = ${year}) as SEP,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 10 AND year(tl.created_at) = ${year}) as OKT,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 11 AND year(tl.created_at) = ${year}) as NOV,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 12 AND year(tl.created_at) = ${year}) as DES
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 1 AND year(tl.created_at) = ${year}) as JAN,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 2 AND year(tl.created_at) = ${year}) as FEB,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 3 AND year(tl.created_at) = ${year}) as MAR,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 4 AND year(tl.created_at) = ${year}) as APR,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 5 AND year(tl.created_at) = ${year}) as MAY,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 6 AND year(tl.created_at) = ${year}) as JUN,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 7 AND year(tl.created_at) = ${year}) as JUL,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 8 AND year(tl.created_at) = ${year}) as AUG,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 9 AND year(tl.created_at) = ${year}) as SEP,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 10 AND year(tl.created_at) = ${year}) as OKT,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 11 AND year(tl.created_at) = ${year}) as NOV,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 12 AND year(tl.created_at) = ${year}) as DES
             FROM ${DATABASE}.tb_laporan tl LIMIT 1`
 
             let queryRecapDone = `SELECT 
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 1 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as JAN,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 2 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as FEB,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 3 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as MAR,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 4 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as APR,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 5 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as MAY,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 6 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as JUN,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 7 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as JUL,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 8 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as AUG,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 9 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as SEP,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 10 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as OKT,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 11 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as NOV,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 12 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as DES
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 1 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as JAN,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 2 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as FEB,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 3 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as MAR,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 4 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as APR,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 5 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as MAY,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 6 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as JUN,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 7 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as JUL,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 8 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as AUG,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 9 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as SEP,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 10 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as OKT,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 11 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as NOV,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 12 AND tl.status_laporan = 'done' AND year(tl.created_at) = ${year}) as DES
             FROM ${DATABASE}.tb_laporan tl LIMIT 1`
 
             let queryRecapReject = `SELECT 
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 1 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as JAN,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 2 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as FEB,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 3 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as MAR,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 4 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as APR,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 5 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as MAY,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 6 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as JUN,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 7 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as JUL,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 8 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as AUG,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 9 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as SEP,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 10 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as OKT,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 11 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as NOV,
-            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where MONTH(tl.created_at) = 12 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as DES
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 1 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as JAN,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 2 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as FEB,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 3 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as MAR,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 4 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as APR,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 5 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as MAY,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 6 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as JUN,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 7 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as JUL,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 8 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as AUG,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 9 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as SEP,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 10 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as OKT,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 11 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as NOV,
+            (select count(id_laporan) from ${DATABASE}.tb_laporan tl where tl.deleted_at is null AND MONTH(tl.created_at) = 12 AND tl.status_laporan = 'rejected' AND year(tl.created_at) = ${year}) as DES
             FROM ${DATABASE}.tb_laporan tl LIMIT 1`
 
             let result = await asynqQuery(queryRecap);
@@ -399,7 +403,7 @@ class laporanModel {
                 from ${DATABASE}.tb_user tuu2) tuun2 on tl.id_petugas = tuun2.id_user
             left join (select tuu.nama as nama_penerima, tuu.id_user, tuu.role
                 from ${DATABASE}.tb_user tuu) tuun on tl.id_user_penerima = tuun.id_user
-        where MONTH(tl.created_at) = ${month} and year(tl.created_at) = ${year}`
+        where MONTH(tl.created_at) = ${month} and year(tl.created_at) = ${year} and tl.deleted_at is null`
         let result = await asynqQuery(query);
         res.send(responseFormated(true, 200, 'Success', result));
     }
@@ -490,7 +494,7 @@ function queryGetDataFormated(whereCondition, sortBy, page, pageSize) {
         left join ${DATABASE}.tb_user tu
             on tl.id_user_pelapor = tu.id_user
         left join (select tuu2.nama as nama_petugas, tuu2.id_user
-            from ${DATABASE}.tb_user tuu2) tuun2 on tl.id_user_pelapor = tuun2.id_user
+            from ${DATABASE}.tb_user tuu2) tuun2 on tl.id_petugas = tuun2.id_user
         left join (select tuu.nama as nama_penerima, tuu.id_user, tuu.role
             from ${DATABASE}.tb_user tuu) tuun on tl.id_user_penerima = tuun.id_user
         left join (
